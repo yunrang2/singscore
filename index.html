@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>무어네 깨알 노래자랑</title>
+  <style>
+    @font-face {
+      font-family: 'DNFBitBitv2';
+      src: url('https://cdn.jsdelivr.net/gh/yunrang2/upload@master/DNFBitBitv2.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    * {
+      font-family: 'DNFBitBitv2', sans-serif;
+      font-weight: normal;
+      text-shadow:
+        -1px -1px 0 #000,
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000;
+    }
+    body {
+      background: #00ff00; /* 초록 배경 */
+      color: white;
+      text-align: center;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed;
+      background: black; /* 표 배경 검정 */
+    }
+    th, td {
+      border: 1px solid white;
+      padding: 6px;
+      font-size: clamp(10px, 1.5vw, 16px);
+      text-align: center;
+      word-break: break-word;
+    }
+    th {
+      white-space: nowrap;
+    }
+    input[type="number"] {
+      width: 50px;
+      max-width: 100%;
+    }
+    input, button {
+      font-size: 16px;
+      padding: 6px;
+      margin: 4px;
+      color: white; /* 버튼 글씨 흰색 */
+      background: #222; /* 버튼 배경은 어두운 회색 */
+      border: 1px solid #888;
+    }
+    button {
+    font-size: 16px;
+    padding: 8px 14px;
+    margin: 4px;
+    color: white;
+    background: #007bff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    button:active {
+      background: #004080;
+    }
+    #modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+    }
+    #modalContent {
+      background-color: #222;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 300px;
+    }
+    #closeModal {
+      float: right;
+      cursor: pointer;
+      color: red;
+    }
+    .active-row {
+      background-color: red !important;
+    }
+    .score-button {
+      font-size: 10px;
+      padding: 2px 4px;
+    }
+    #toggleJudgeBtnModal {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 12px;
+      padding: 2px 6px;
+    }
+    #scoreInputModalContent {
+      position: relative;
+      background: #222;
+      width: 300px;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+    }
+  </style>
+</head>
+<body>
+  <div style="position: absolute; top: 10px; right: 10px;">
+    <button onclick="resetAll()" style="font-size: 12px; padding: 2px 6px; border: 1px solid #888; background: #222; color: white;">초기화</button>
+    <button onclick="resetSelectedCon()" style="font-size: 12px; padding: 2px 6px; border: 1px solid #888; background: #222; color: white;">선택 콘+점수 초기화</button>
+  </div>
+
+  <h1>🎤 무어네 깨알 노래자랑</h1>
+  <button onclick="openModal()">참여자 추가</button>
+  <button id="toggleBtn" onclick="toggleSingerVisibility()">참가자 표시</button>
+  <button id="sortToggleBtn" onclick="toggleSortMode()">순위 정렬</button>
+
+  <div id="modal">
+    <div id="modalContent">
+      <span id="closeModal" onclick="closeModal()">✖</span>
+      <h2>참여자 추가</h2>
+      <input type="text" id="singer" placeholder="참가자명"><br>
+      <input type="text" id="song" placeholder="노래 제목" onkeydown="handleEnter(event)"><br>
+      <button onclick="addEntry()">추가</button>
+    </div>
+  </div>
+
+  <div style="width: 100%;">
+    <table id="scoreTable">
+      <thead>
+        <tr>
+          <th>노래 중</th>
+          <th>순서</th>
+          <th><span id="singerHeaderText">참가자 (비공개)</span></th>
+          <th>노래 제목</th>
+          <th>점수 입력</th>
+          <th>누적 콘 수</th>
+          <th>총 점수</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <div id="scoreInputModal" style="display:none; position:fixed; z-index:1001; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
+    <div id="scoreInputModalContent">
+      <button id="toggleJudgeBtnModal" onclick="toggleJudgeFieldFromModal()">추가</button>
+      <h2>점수 입력</h2>
+      <div id="dynamicScoreInputs"></div>
+      <button onclick="saveScores()">저장</button>
+      <button onclick="closeScoreModal()">취소</button>
+    </div>
+  </div>
+
+  <script>
+    let participants = [];
+    let originalOrder = [];
+    let judgeCount = 3;
+    let showSingers = false;
+    let currentScoreIndex = null;
+    let activeIndex = null;
+    let lastMessageHash = null;
+    let pendingContributions = {};
+    let isSortedByScore = false;
+
+    window.addEventListener("message", (event) => {
+      const { type, con, amount, 참가자, raw } = event.data;
+      if (type === "coin") {
+        const value = parseInt(amount ?? con);
+        const text = raw || "";
+        if (!value || isNaN(value)) return;
+        const msgHash = JSON.stringify(event.data);
+        if (msgHash === lastMessageHash) return;
+        lastMessageHash = msgHash;
+
+        const nickMatch = text.match(/(.+?)\(.+?\)님이/);
+        const nickname = nickMatch ? nickMatch[1].trim() : null;
+
+        if (activeIndex !== null && participants[activeIndex]) {
+          participants[activeIndex].score += value;
+          participants[activeIndex].conTotal = (participants[activeIndex].conTotal || 0) + value;
+        } else if (nickname) {
+          pendingContributions[nickname] = (pendingContributions[nickname] || 0) + value;
+        }
+        saveData(); renderTable();
+      }
+
+      if (type === "assign") {
+        const nickname = event.data.nickname;
+        const targetNum = parseInt(event.data.참가자);
+        const idx = targetNum - 1;
+        const value = pendingContributions[nickname];
+        if (value && participants[idx]) {
+          participants[idx].score += value;
+          participants[idx].conTotal = (participants[idx].conTotal || 0) + value;
+          delete pendingContributions[nickname];
+          saveData(); renderTable();
+        }
+      }
+    });
+
+    function openModal() {
+      document.getElementById('modal').style.display = 'block';
+      setTimeout(() => document.getElementById('singer').focus(), 100);
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    function addEntry() {
+      const singer = document.getElementById('singer').value.trim();
+      const song = document.getElementById('song').value.trim();
+      if (!singer || !song) return alert("참가자명과 노래 제목은 필수입니다.");
+      const newEntry = { singer, song, score: 0, conTotal: 0 };
+      for (let i = 1; i <= judgeCount; i++) newEntry[`judge${i}`] = 0;
+      participants.push(newEntry);
+      originalOrder.push(newEntry);
+      renderTable(); saveData();
+      document.getElementById('singer').value = '';
+      document.getElementById('song').value = '';
+      document.getElementById('singer').focus();
+    }
+
+    function handleEnter(e) {
+      if (e.key === "Enter") addEntry();
+    }
+
+    function toggleSingerVisibility() {
+      showSingers = !showSingers;
+      document.getElementById('toggleBtn').textContent = showSingers ? '참가자 감춤' : '참가자 표시';
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      participants.forEach((p, i) => {
+        const name = showSingers ? p.singer : `참가자${i + 1}`;
+        const judgeScores = Array.from({ length: judgeCount }, (_, j) => p[`judge${j + 1}`] || 0);
+        const totalScore = judgeScores.reduce((a, b) => a + b, p.score);
+        p.scoreTotal = totalScore;
+        const tr = document.createElement('tr');
+        tr.className = (i === activeIndex) ? 'active-row' : '';
+        tr.innerHTML = `
+          <td><input type="checkbox" onchange="setActive(${i})" ${i === activeIndex ? 'checked' : ''}></td>
+          <td>${i + 1}</td>
+          <td>${name}</td>
+          <td>${p.song}</td>
+          <td><button class="score-button" onclick="openScoreModal(${i})">점수</button></td>
+          <td>${p.conTotal || 0}</td>
+          <td>${totalScore}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('singerHeaderText').textContent = showSingers ? '참가자 (공개)' : '참가자 (비공개)';
+    }
+
+    function setActive(index) {
+      activeIndex = (activeIndex === index) ? null : index;
+      renderTable();
+    }
+
+    function openScoreModal(index) {
+      currentScoreIndex = index;
+      const p = participants[index];
+      const container = document.getElementById('dynamicScoreInputs');
+      container.innerHTML = '';
+      for (let i = 0; i < judgeCount; i++) {
+        const val = p[`judge${i + 1}`] || 0;
+        container.innerHTML += `<label>점수${i + 1}: <input type="number" id="scoreInput${i}" value="${val}"></label><br><br>`;
+      }
+      document.getElementById('scoreInputModal').style.display = 'block';
+    }
+
+    function closeScoreModal() {
+      document.getElementById('scoreInputModal').style.display = 'none';
+    }
+
+    function saveScores() {
+      if (currentScoreIndex !== null) {
+        for (let i = 0; i < judgeCount; i++) {
+          const val = parseInt(document.getElementById(`scoreInput${i}`).value) || 0;
+          participants[currentScoreIndex][`judge${i + 1}`] = val;
+        }
+        closeScoreModal();
+        renderTable();
+        saveData();
+      }
+    }
+
+    function toggleJudgeFieldFromModal() {
+      judgeCount = judgeCount === 3 ? 2 : 3;
+      document.getElementById('toggleJudgeBtnModal').textContent = judgeCount === 3 ? '삭제' : '추가';
+      openScoreModal(currentScoreIndex);
+    }
+
+    function toggleSortMode() {
+      const btn = document.getElementById('sortToggleBtn');
+      if (!isSortedByScore) {
+        participants.sort((a, b) => (b.scoreTotal || 0) - (a.scoreTotal || 0));
+        isSortedByScore = true;
+        btn.textContent = '순서 정렬';
+      } else {
+        participants = [...originalOrder];
+        isSortedByScore = false;
+        btn.textContent = '순위 정렬';
+      }
+      renderTable();
+    }
+
+    function resetSelectedCon() {
+      const checkboxes = document.querySelectorAll('#tableBody input[type="checkbox"]');
+      let changed = false;
+      checkboxes.forEach((cb, i) => {
+        if (cb.checked) {
+          participants[i].conTotal = 0;
+          participants[i].score = 0;
+          for (let j = 1; j <= judgeCount; j++) {
+            participants[i][`judge${j}`] = 0;
+          }
+          participants[i].scoreTotal = 0;
+          // originalOrder에서도 동기화
+          const ori = originalOrder[i];
+          ori.conTotal = 0;
+          ori.score = 0;
+          for (let j = 1; j <= judgeCount; j++) {
+            ori[`judge${j}`] = 0;
+          }
+          ori.scoreTotal = 0;
+          changed = true;
+        }
+      });
+      if (changed) {
+        saveData();
+        renderTable();
+      } else {
+        alert("선택된 참가자가 없습니다.");
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('participants', JSON.stringify(participants));
+      localStorage.setItem('originalOrder', JSON.stringify(originalOrder));
+    }
+
+    function loadSavedData() {
+      const saved = localStorage.getItem('participants');
+      const original = localStorage.getItem('originalOrder');
+      if (saved) {
+        try {
+          participants = JSON.parse(saved);
+          originalOrder = original ? JSON.parse(original) : [...participants];
+          renderTable();
+        } catch (e) {
+          console.error('데이터 복원 실패:', e);
+          participants = [];
+          originalOrder = [];
+        }
+      }
+    }
+
+    function resetAll() {
+      if (confirm("정말 모든 데이터를 초기화하시겠습니까?")) {
+        localStorage.removeItem('participants');
+        localStorage.removeItem('originalOrder');
+        participants = [];
+        originalOrder = [];
+        renderTable();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSavedData();
+    });
+  </script>
+</body>
+</html>
