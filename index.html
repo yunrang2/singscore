@@ -267,153 +267,140 @@
         let assignedHistory = new Set();
         let lastCoinSender = null;
 
-                function showVersion() {
-                    const version = 'v.2025.08.02.18';
-                    const versionDiv = document.createElement('div');
-                    versionDiv.textContent = version;
-                    versionDiv.style.position = 'fixed';
-                    versionDiv.style.top = '5px';
-                    versionDiv.style.left = '5px';
-                    versionDiv.style.fontSize = '10px';
-                    versionDiv.style.color = '#333';
-                    versionDiv.style.textShadow = '1px 1px 0 white';
-                    versionDiv.style.zIndex = '9999';
-                    document.body.appendChild(versionDiv);
-                    console.log(✅ 현재 스크립트 버전: ${version});
-                }
-            
-                window.addEventListener("message", (event) => {
-                    const { type, con, amount, nickname, 참가자, raw } = event.data;
-                    
-                    const msgHash = JSON.stringify(event.data);
-                    if (msgHash === lastMessageHash) return;
-                    lastMessageHash = msgHash;
-                    
-                    console.log("💌 메시지 수신 및 처리 시작:", event.data);
-            
-                    // 팝콘 메시지 처리 (점수 보류)
-                    if (type === "coin") {
-                        const value = parseInt(amount ?? con);
-                        if (!value || isNaN(value) || !nickname) {
-                            console.log("⚠️ 팝콘 메시지 처리 실패: 점수 또는 닉네임 정보가 없습니다.");
-                            return;
-                        }
-            
-                        // 체크된 참가자가 있으면 바로 점수 할당 (이전과 동일한 기능)
-                        if (activeIndex !== null && participants[activeIndex]) {
-                            const targetParticipant = participants[activeIndex];
-                            const blindName = targetParticipant.blindName || 참가자${activeIndex + 1};
-                            const logKey = ${nickname}|${blindName}|${value}|${Date.now()};
+        function showVersion() {
+            const savedVersion = localStorage.getItem("custom_version") || "v.2025.08.02.17";
+        
+            const versionDiv = document.createElement('div');
+            versionDiv.textContent = savedVersion;
+            versionDiv.id = "versionDisplay";
+            versionDiv.style.position = 'fixed';
+            versionDiv.style.top = '5px';
+            versionDiv.style.left = '5px';
+            versionDiv.style.fontSize = '10px';
+            versionDiv.style.color = '#333';
+            versionDiv.style.textShadow = '1px 1px 0 white';
+            versionDiv.style.zIndex = '9999';
+            versionDiv.style.cursor = 'pointer';
+        
+            versionDiv.addEventListener('click', () => {
+              const newVersion = prompt("새 버전명을 입력하세요:", savedVersion);
+              if (newVersion) {
+                localStorage.setItem("custom_version", newVersion);
+                versionDiv.textContent = newVersion;
+                console.log(`✅ 버전명 수동 갱신됨: ${newVersion}`);
+              }
+            });
+        
+            document.body.appendChild(versionDiv);
+            console.log(`✅ 현재 스크립트 버전: ${savedVersion}`);
+          }
+        
+          window.addEventListener("message", (event) => {
+            const { type, con, amount, nickname, 참가자, raw } = event.data;
         
             if (type === "coin") {
-                const value = parseInt(amount ?? con);
-            
-                // nickname 없으면 raw에서 추출
-                let nicknameFixed = nickname;
-                if ((!nicknameFixed || typeof nicknameFixed !== 'string') && raw) {
-                    const nickMatch = raw.match(/(.+?)\(.+?\)님이/);
-                    if (nickMatch) {
-                        nicknameFixed = nickMatch[1].trim();
-                        console.log(`🔧 raw에서 nickname 추출됨: ${nicknameFixed}`);
-                    }
-                }
-            
-                if (!value || isNaN(value) || !nicknameFixed) {
-                    console.log("⚠️ 팝콘 메시지 처리 실패: 점수 또는 닉네임 정보가 없습니다.");
-                    return;
-                }
-            
-                // 같은 후원자에게 이미 점수 반영했으면 무시
-                if (assignedHistory.has(nicknameFixed)) {
-                    console.log(`❌ 중복 할당 방지됨: ${nicknameFixed}`);
-                    return;
-                }
-            
-                // 체크된 참가자 중 첫 번째 찾기
-                const checkboxes = document.querySelectorAll('#tableBody input[type="checkbox"]');
-                let checkedIndex = null;
-                checkboxes.forEach((cb, idx) => {
-                    if (cb.checked && checkedIndex === null) checkedIndex = idx;
-                });
-            
-                if (checkedIndex !== null && participants[checkedIndex]) {
-                    const targetParticipant = participants[checkedIndex];
-                    const blindName = targetParticipant.blindName || `참가자${checkedIndex + 1}`;
-            
-                    // 중복 방지 등록
-                    assignedHistory.add(nicknameFixed);
-            
-                    // 점수 반영
-                    targetParticipant.score += value;
-                    targetParticipant.conTotal = (targetParticipant.conTotal || 0) + value;
-            
-                    // 로그 추가 (시간 포함)
-                    conLogHistory.push({
-                        nickname: nicknameFixed,
-                        participant: blindName,
-                        value,
-                        time: new Date().toLocaleString(),
-                        logKey: `${nicknameFixed}|${blindName}|${value}`
-                    });
-            
-                    triggerConfetti();
-                    updateLogFilterOptions();
-                    saveData();
-                    renderTable();
-                    console.log(`✅ ${nicknameFixed} → ${blindName}에게 ${value}점 자동 반영됨`);
-                } else {
-                    // 체크된 참가자 없음 → 보류 상태로 저장
-                    pendingContributions[nicknameFixed] = (pendingContributions[nicknameFixed] || 0) + value;
-                    console.log(`💰 보류된 점수 저장: ${nicknameFixed} → ${value}점 (노래 중인 참가자가 없음)`);
-                }
-            }
+              const value = parseInt(amount ?? con);
         
-            // @참가자N 명령어 처리
-            if (type === "assign") {
-                const targetNum = parseInt(참가자);
-                const senderNickname = nickname;
-        
-                const value = pendingContributions[senderNickname];
-        
-                if (!value || isNaN(targetNum)) {
-                    console.log(`⚠️ 할당 실패: 보류된 점수가 없거나 참가자 번호가 올바르지 않습니다.`);
-                    return;
+              // nickname 없으면 raw에서 추출
+              let nicknameFixed = nickname;
+              if ((!nicknameFixed || typeof nicknameFixed !== 'string') && raw) {
+                const nickMatch = raw.match(/(.+?)\(.+?\)²가/);
+                if (nickMatch) {
+                  nicknameFixed = nickMatch[1].trim();
+                  console.log(`🔧 raw에서 nickname 추출됨: ${nicknameFixed}`);
                 }
+              }
         
-                const idx = targetNum - 1;
-                if (!participants[idx]) {
-                    console.log(`⚠️ 참가자 번호 ${targetNum}가 존재하지 않습니다.`);
-                    return;
-                }
+              if (!value || isNaN(value) || !nicknameFixed) {
+                console.log("⚠️ 팝콘 메시지 처리 실패: 점수 또는 닉네임 정보가 없습니다.");
+                return;
+              }
         
-                const blindName = participants[idx].blindName || `참가자${idx + 1}`;
-                const logKey = `${senderNickname}|${blindName}|${value}|${Date.now()}`;
-                if (assignedHistory.has(logKey)) {
-                    console.log(`❌ 중복 할당 시도 방지: ${logKey}`);
-                    return;
-                }
-                assignedHistory.add(logKey);
+              if (assignedHistory.has(nicknameFixed)) {
+                console.log(`❌ 중복 할당 방지됨: ${nicknameFixed}`);
+                return;
+              }
         
-                participants[idx].score += value;
-                participants[idx].conTotal = (participants[idx].conTotal || 0) + value;
+              const checkboxes = document.querySelectorAll('#tableBody input[type="checkbox"]');
+              let checkedIndex = null;
+              checkboxes.forEach((cb, idx) => {
+                if (cb.checked && checkedIndex === null) checkedIndex = idx;
+              });
+        
+              if (checkedIndex !== null && participants[checkedIndex]) {
+                const targetParticipant = participants[checkedIndex];
+                const blindName = targetParticipant.blindName || `참가자${checkedIndex + 1}`;
+        
+                assignedHistory.add(nicknameFixed);
+        
+                targetParticipant.score += value;
+                targetParticipant.conTotal = (targetParticipant.conTotal || 0) + value;
         
                 conLogHistory.push({
-                    nickname: senderNickname,
-                    participant: blindName,
-                    value,
-                    time: new Date().toLocaleString(),
-                    logKey
+                  nickname: nicknameFixed,
+                  participant: blindName,
+                  value,
+                  time: new Date().toLocaleString(),
+                  logKey: `${nicknameFixed}|${blindName}|${value}`
                 });
-        
-                delete pendingContributions[senderNickname];
         
                 triggerConfetti();
                 updateLogFilterOptions();
                 saveData();
                 renderTable();
-                console.log(`✅ ${senderNickname} → ${blindName}에게 ${value}점 반영됨`);
+                console.log(`✅ ${nicknameFixed} → ${blindName}에게 ${value}점 자동 반영됨`);
+              } else {
+                pendingContributions[nicknameFixed] = (pendingContributions[nicknameFixed] || 0) + value;
+                console.log(`💰 보류된 점수 저장: ${nicknameFixed} → ${value}점 (노래 중인 참가자가 없음)`);
+              }
             }
-        });
+        
+            if (type === "assign") {
+              const targetNum = parseInt(참가자);
+              const senderNickname = nickname;
+        
+              const value = pendingContributions[senderNickname];
+        
+              if (!value || isNaN(targetNum)) {
+                console.log(`⚠️ 할당 실패: 보류된 점수가 없거나 참가자 번호가 올바르지 않습니다.`);
+                return;
+              }
+        
+              const idx = targetNum - 1;
+              if (!participants[idx]) {
+                console.log(`⚠️ 참가자 번호 ${targetNum}가 존재하지 않습니다.`);
+                return;
+              }
+        
+              const blindName = participants[idx].blindName || `참가자${idx + 1}`;
+              const logKey = `${senderNickname}|${blindName}|${value}`;
+        
+              if (assignedHistory.has(logKey)) {
+                console.log(`❌ 중복 할당 시도 방지: ${logKey}`);
+                return;
+              }
+              assignedHistory.add(logKey);
+        
+              participants[idx].score += value;
+              participants[idx].conTotal = (participants[idx].conTotal || 0) + value;
+        
+              conLogHistory.push({
+                nickname: senderNickname,
+                participant: blindName,
+                value,
+                time: new Date().toLocaleString(),
+                logKey
+              });
+        
+              delete pendingContributions[senderNickname];
+        
+              triggerConfetti();
+              updateLogFilterOptions();
+              saveData();
+              renderTable();
+              console.log(`✅ ${senderNickname} → ${blindName}에게 ${value}점 반영됨`);
+            }
+          });
 
     
         window.reprocessConLogs = function() {
@@ -818,6 +805,7 @@
     </script>
 </body>
 </html>
+
 
 
 
