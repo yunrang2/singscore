@@ -322,6 +322,20 @@
                     return;
                 }
             
+                // 완전 중복 메시지 차단 (같은 데이터 두 번 수신 방지)
+                const msgHash = JSON.stringify(event.data);
+                if (msgHash === lastMessageHash) {
+                    console.log("🔁 동일한 메시지 무시됨 (중복 전송):", msgHash);
+                    return;
+                }
+                lastMessageHash = msgHash;
+            
+                // 후원자 기준 중복 방지
+                if (assignedHistory.has(nicknameFixed)) {
+                    console.log(`❌ 중복 할당 방지됨: ${nicknameFixed}`);
+                    return;
+                }
+            
                 // 체크된 참가자 찾기
                 const checkboxes = document.querySelectorAll('#tableBody input[type="checkbox"]');
                 let checkedIndex = null;
@@ -332,14 +346,10 @@
                 if (checkedIndex !== null && participants[checkedIndex]) {
                     const targetParticipant = participants[checkedIndex];
                     const blindName = targetParticipant.blindName || `참가자${checkedIndex + 1}`;
-                    const logKey = `${nicknameFixed}|${blindName}|${value}`;
             
-                    if (assignedHistory.has(logKey)) {
-                        console.log(`❌ 중복 할당 방지됨: ${logKey}`);
-                        return;
-                    }
+                    // 중복 방지 등록
+                    assignedHistory.add(nicknameFixed);
             
-                    assignedHistory.add(logKey);
                     targetParticipant.score += value;
                     targetParticipant.conTotal = (targetParticipant.conTotal || 0) + value;
             
@@ -348,7 +358,7 @@
                         participant: blindName,
                         value,
                         time: new Date().toLocaleString(),
-                        logKey
+                        logKey: `${nicknameFixed}|${blindName}|${value}`
                     });
             
                     triggerConfetti();
@@ -357,10 +367,12 @@
                     renderTable();
                     console.log(`✅ ${nicknameFixed} → ${blindName}에게 ${value}점 자동 반영됨`);
                 } else {
+                    // 선택된 참가자 없음 → 보류
                     pendingContributions[nicknameFixed] = (pendingContributions[nicknameFixed] || 0) + value;
-                    console.log(`💰 보류된 점수 저장: ${nicknameFixed} → ${value}점 (노래 중인 참가자가 없음)`);
+                    console.log(`💰 보류된 점수 저장: ${nicknameFixed} → ${value}점 (선택된 참가자 없음)`);
                 }
             }
+
 
         
             // @참가자N 명령어 처리
@@ -784,6 +796,7 @@
     </script>
 </body>
 </html>
+
 
 
 
