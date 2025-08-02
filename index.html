@@ -190,8 +190,7 @@
   <button id="toggleBtn" onclick="toggleSingerVisibility()">참가자 표시</button>
   <button id="sortToggleBtn" onclick="toggleSortMode()">순위 정렬</button>
   <button onclick="openLogModal()">로그 보기</button>
-
-
+  <button onclick="openManualConModal()">콘 수동 반영</button>
 
   <div id="modal">
     <div id="modalContent">
@@ -245,6 +244,16 @@
     </div>
   </div>
 
+  <div id="manualConModal" style="display:none; position:fixed; z-index:1001; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
+  <div style="background:#fff0f5; color:#000; width:300px; margin:10% auto; padding:20px; border:2px solid #ff69b4; position:relative;">
+    <span onclick="closeManualConModal()" style="position:absolute; top:10px; right:15px; color:red; cursor:pointer;">✖</span>
+    <h2>콘 수동 반영</h2>
+    <label>닉네임: <input type="text" id="manualNickname" /></label><br><br>
+    <label>참가자 번호: <input type="number" id="manualTarget" min="1" /></label><br><br>
+    <label>콘 점수: <input type="number" id="manualAmount" /></label><br><br>
+    <button onclick="applyManualCon()">반영</button>
+  </div>
+</div>
 
   <script>
   let participants = [];
@@ -626,13 +635,58 @@
       renderTable();
       console.log("✅ 중복 콘 점수 정리 완료");
     }
+
+      function openManualConModal() {
+      document.getElementById('manualConModal').style.display = 'block';
+    }
+
+    function closeManualConModal() {
+      document.getElementById('manualConModal').style.display = 'none';
+    }
     
+    function applyManualCon() {
+      const nickname = document.getElementById('manualNickname').value.trim();
+      const target = parseInt(document.getElementById('manualTarget').value);
+      const amount = parseInt(document.getElementById('manualAmount').value);
+    
+      if (!nickname || isNaN(target) || isNaN(amount)) {
+        alert("모든 값을 입력해주세요.");
+        return;
+      }
+    
+      const idx = target - 1;
+      if (!participants[idx]) {
+        alert("해당 참가자 번호가 존재하지 않습니다.");
+        return;
+      }
+    
+      participants[idx].score += amount;
+      participants[idx].conTotal = (participants[idx].conTotal || 0) + amount;
+    
+      // 로그 기록
+      const blindName = participants[idx].blindName || `참가자${target}`;
+      contributionLogs.push({
+        nickname,
+        participant: blindName,
+        amount,
+        time: new Date().toLocaleString()
+      });
+    
+      console.log(`🛠️ 수동 반영 완료: ${nickname} → ${blindName} (${amount}점)`);
+    
+      saveData();
+      renderTable();
+      renderLogModalOptions();
+      closeManualConModal();
+    }
+
 
   purgeDuplicateConScores();
 
   </script>
 </body>
 </html>
+
 
 
 
