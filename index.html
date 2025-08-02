@@ -266,7 +266,36 @@
         let conLogHistory = [];
         let assignedHistory = new Set();
         let lastCoinSender = null;
-    
+
+        function showVersion() {
+            const savedVersion = localStorage.getItem("custom_version") || "v.2025.08.02.18";
+        
+            const versionDiv = document.createElement('div');
+            versionDiv.textContent = savedVersion;
+            versionDiv.id = "versionDisplay";
+            versionDiv.style.position = 'fixed';
+            versionDiv.style.top = '5px';
+            versionDiv.style.left = '5px';
+            versionDiv.style.fontSize = '10px';
+            versionDiv.style.color = '#333';
+            versionDiv.style.textShadow = '1px 1px 0 white';
+            versionDiv.style.zIndex = '9999';
+            versionDiv.style.cursor = 'pointer';
+        
+            versionDiv.addEventListener('click', () => {
+                const newVersion = prompt("새 버전명을 입력하세요:", savedVersion);
+                if (newVersion) {
+                    localStorage.setItem("custom_version", newVersion);
+                    versionDiv.textContent = newVersion;
+                    console.log(`✅ 버전명 수동 갱신됨: ${newVersion}`);
+                }
+            });
+        
+            document.body.appendChild(versionDiv);
+            console.log(`✅ 현재 스크립트 버전: ${savedVersion}`);
+        }
+
+        
             if (type === "coin") {
                 const value = parseInt(amount ?? con);
             
@@ -329,9 +358,6 @@
                     console.log(`💰 보류된 점수 저장: ${nicknameFixed} → ${value}점 (노래 중인 참가자가 없음)`);
                 }
             }
-
-
-
         
             // @참가자N 명령어 처리
             if (type === "assign") {
@@ -754,6 +780,7 @@
     </script>
 </body>
 </html>
+
 
 
 
