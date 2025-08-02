@@ -648,21 +648,21 @@
       const nickname = document.getElementById('manualNickname').value.trim();
       const target = parseInt(document.getElementById('manualTarget').value);
       const amount = parseInt(document.getElementById('manualAmount').value);
-    
+
       if (!nickname || isNaN(target) || isNaN(amount)) {
         alert("모든 값을 입력해주세요.");
         return;
       }
-    
+
       const idx = target - 1;
       if (!participants[idx]) {
         alert("해당 참가자 번호가 존재하지 않습니다.");
         return;
       }
-    
+
       participants[idx].score += amount;
       participants[idx].conTotal = (participants[idx].conTotal || 0) + amount;
-    
+
       // 로그 기록
       const blindName = participants[idx].blindName || `참가자${target}`;
       contributionLogs.push({
@@ -671,27 +671,15 @@
         amount,
         time: new Date().toLocaleString()
       });
-    
+
       console.log(`🛠️ 수동 반영 완료: ${nickname} → ${blindName} (${amount}점)`);
-    
+
       saveData();
       renderTable();
-      updateLogFilterOptions()
+      updateLogFilterOptions();
       closeManualConModal();
     }
-
+  })
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
