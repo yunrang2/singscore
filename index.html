@@ -266,6 +266,44 @@
         let conLogHistory = [];
         let assignedHistory = new Set();
         let lastCoinSender = null;
+
+                function showVersion() {
+                    const version = 'v.2025.08.02.15';
+                    const versionDiv = document.createElement('div');
+                    versionDiv.textContent = version;
+                    versionDiv.style.position = 'fixed';
+                    versionDiv.style.top = '5px';
+                    versionDiv.style.left = '5px';
+                    versionDiv.style.fontSize = '10px';
+                    versionDiv.style.color = '#333';
+                    versionDiv.style.textShadow = '1px 1px 0 white';
+                    versionDiv.style.zIndex = '9999';
+                    document.body.appendChild(versionDiv);
+                    console.log(✅ 현재 스크립트 버전: ${version});
+                }
+            
+                window.addEventListener("message", (event) => {
+                    const { type, con, amount, nickname, 참가자, raw } = event.data;
+                    
+                    const msgHash = JSON.stringify(event.data);
+                    if (msgHash === lastMessageHash) return;
+                    lastMessageHash = msgHash;
+                    
+                    console.log("💌 메시지 수신 및 처리 시작:", event.data);
+            
+                    // 팝콘 메시지 처리 (점수 보류)
+                    if (type === "coin") {
+                        const value = parseInt(amount ?? con);
+                        if (!value || isNaN(value) || !nickname) {
+                            console.log("⚠️ 팝콘 메시지 처리 실패: 점수 또는 닉네임 정보가 없습니다.");
+                            return;
+                        }
+            
+                        // 체크된 참가자가 있으면 바로 점수 할당 (이전과 동일한 기능)
+                        if (activeIndex !== null && participants[activeIndex]) {
+                            const targetParticipant = participants[activeIndex];
+                            const blindName = targetParticipant.blindName || 참가자${activeIndex + 1};
+                            const logKey = ${nickname}|${blindName}|${value}|${Date.now()};
         
             if (type === "coin") {
                 const value = parseInt(amount ?? con);
@@ -780,6 +818,7 @@
     </script>
 </body>
 </html>
+
 
 
 
