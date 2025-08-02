@@ -284,36 +284,42 @@
     
         window.addEventListener("message", (event) => {
             const { type, con, amount, nickname, 참가자, raw } = event.data;
-            
+        
             const msgHash = JSON.stringify(event.data);
             if (msgHash === lastMessageHash) return;
             lastMessageHash = msgHash;
-            
+        
             console.log("💌 메시지 수신 및 처리 시작:", event.data);
-    
-            // 팝콘 메시지 처리 (점수 보류)
+        
+            // 콘 후원 자동 반영
             if (type === "coin") {
                 const value = parseInt(amount ?? con);
                 if (!value || isNaN(value) || !nickname) {
                     console.log("⚠️ 팝콘 메시지 처리 실패: 점수 또는 닉네임 정보가 없습니다.");
                     return;
                 }
-    
-                // 체크된 참가자가 있으면 바로 점수 할당 (이전과 동일한 기능)
-                if (activeIndex !== null && participants[activeIndex]) {
-                    const targetParticipant = participants[activeIndex];
-                    const blindName = targetParticipant.blindName || `참가자${activeIndex + 1}`;
+        
+                // 체크된 참가자 중 첫 번째를 찾아 자동 반영
+                const checkboxes = document.querySelectorAll('#tableBody input[type="checkbox"]');
+                let checkedIndex = null;
+                checkboxes.forEach((cb, idx) => {
+                    if (cb.checked && checkedIndex === null) checkedIndex = idx;
+                });
+        
+                if (checkedIndex !== null && participants[checkedIndex]) {
+                    const targetParticipant = participants[checkedIndex];
+                    const blindName = targetParticipant.blindName || `참가자${checkedIndex + 1}`;
                     const logKey = `${nickname}|${blindName}|${value}|${Date.now()}`;
-                    
+        
                     if (assignedHistory.has(logKey)) {
                         console.log(`❌ 중복 할당 시도 방지 (자동 반영): ${logKey}`);
                         return;
                     }
                     assignedHistory.add(logKey);
-    
+        
                     targetParticipant.score += value;
                     targetParticipant.conTotal = (targetParticipant.conTotal || 0) + value;
-    
+        
                     conLogHistory.push({
                         nickname: nickname,
                         participant: blindName,
@@ -321,50 +327,49 @@
                         time: new Date().toLocaleString(),
                         logKey
                     });
-    
+        
                     triggerConfetti();
                     updateLogFilterOptions();
                     saveData();
                     renderTable();
                     console.log(`✅ ${nickname} → ${blindName}에게 ${value}점 자동 반영됨`);
-                    
+        
                 } else {
-                    // 체크된 참가자가 없으면 점수를 보류 상태로 둡니다.
+                    // 체크된 참가자 없으면 보류 처리
                     pendingContributions[nickname] = (pendingContributions[nickname] || 0) + value;
                     console.log(`💰 보류된 점수 저장: ${nickname} → ${value}점 (노래 중인 참가자가 없음)`);
                 }
             }
-            
-            // `@참가자n` 명령어 처리 (보류된 점수 할당)
+        
+            // @참가자N 명령어 처리
             if (type === "assign") {
                 const targetNum = parseInt(참가자);
                 const senderNickname = nickname;
-                
+        
                 const value = pendingContributions[senderNickname];
-                
+        
                 if (!value || isNaN(targetNum)) {
                     console.log(`⚠️ 할당 실패: 보류된 점수가 없거나 참가자 번호가 올바르지 않습니다.`);
                     return;
                 }
-                
+        
                 const idx = targetNum - 1;
                 if (!participants[idx]) {
                     console.log(`⚠️ 참가자 번호 ${targetNum}가 존재하지 않습니다.`);
                     return;
                 }
-                
+        
                 const blindName = participants[idx].blindName || `참가자${idx + 1}`;
-                
                 const logKey = `${senderNickname}|${blindName}|${value}|${Date.now()}`;
                 if (assignedHistory.has(logKey)) {
                     console.log(`❌ 중복 할당 시도 방지: ${logKey}`);
                     return;
                 }
                 assignedHistory.add(logKey);
-    
+        
                 participants[idx].score += value;
                 participants[idx].conTotal = (participants[idx].conTotal || 0) + value;
-    
+        
                 conLogHistory.push({
                     nickname: senderNickname,
                     participant: blindName,
@@ -372,9 +377,9 @@
                     time: new Date().toLocaleString(),
                     logKey
                 });
-    
+        
                 delete pendingContributions[senderNickname];
-                
+        
                 triggerConfetti();
                 updateLogFilterOptions();
                 saveData();
@@ -382,6 +387,7 @@
                 console.log(`✅ ${senderNickname} → ${blindName}에게 ${value}점 반영됨`);
             }
         });
+
     
         window.reprocessConLogs = function() {
             if (!confirm("저장된 로그를 바탕으로 모든 콘 점수를 재반영하시겠습니까?\n기존 점수는 초기화됩니다.")) {
@@ -756,6 +762,7 @@
     </script>
 </body>
 </html>
+
 
 
 
