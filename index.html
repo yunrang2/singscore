@@ -256,95 +256,78 @@
 </div>
 
   <script>
-  let participants = [];
-  let originalOrder = [];
-  let judgeCount = 3;
-  let showSingers = false;
-  let currentScoreIndex = null;
-  let activeIndex = null;
-  let lastMessageHash = null;
-  let pendingContributions = {};
-  let isSortedByScore = false;
-  let conLogHistory = [];
-  let contributionLogs = []; // 로그 배열
-  let assignedHistory = new Set(); // 중복 방지용
+    let participants = [];
+    let originalOrder = [];
+    let judgeCount = 3;
+    let showSingers = false;
+    let currentScoreIndex = null;
+    let activeIndex = null;
+    let lastMessageHash = null;
+    let pendingContributions = {};
+    let isSortedByScore = false;
+    let conLogHistory = [];
+    let contributionLogs = [];
+    let assignedHistory = new Set();
 
-  window.addEventListener("message", (event) => {
-    const { type, con, amount, 참가자, raw } = event.data;
-  
-    if (type === "coin") {
-      const value = parseInt(amount ?? con);
-      const text = raw || "";
-      if (!value || isNaN(value)) return;
-  
-      const msgHash = JSON.stringify(event.data);
-      if (msgHash === lastMessageHash) return;
-      lastMessageHash = msgHash;
-  
-      const nickMatch = text.match(/(.+?)\(.+?\)님이/);
-      const nickname = nickMatch ? nickMatch[1].trim() : null;
-  
-      if (nickname) {
-        pendingContributions[nickname] = (pendingContributions[nickname] || 0) + value;
-        console.log(`💰 보류된 점수 저장: ${nickname} → ${value}점`);
+    window.addEventListener("message", (event) => {
+      const { type, con, amount, 참가자, raw } = event.data;
+
+      if (type === "coin") {
+        const value = parseInt(amount ?? con);
+        const text = raw || "";
+        if (!value || isNaN(value)) return;
+
+        const msgHash = JSON.stringify(event.data);
+        if (msgHash === lastMessageHash) return;
+        lastMessageHash = msgHash;
+
+        const nickMatch = text.match(/(.+?)\(.+?\)님이/);
+        const nickname = nickMatch ? nickMatch[1].trim() : null;
+
+        if (nickname) {
+          pendingContributions[nickname] = (pendingContributions[nickname] || 0) + value;
+          console.log(`💰 보류된 점수 저장: ${nickname} → ${value}점`);
+        }
+
+        saveData();
+        renderTable();
       }
-  
-      saveData();
-      renderTable();
-    }
-  
+
       if (type === "assign") {
         const nickname = event.data.nickname;
         const targetNum = parseInt(event.data.참가자);
         const idx = targetNum - 1;
-      
         const value = pendingContributions[nickname];
         const blindName = participants[idx]?.blindName || `참가자${idx + 1}`;
-      
-        if (!participants[idx]) {
-          console.warn(`❗ 유효하지 않은 참가자 인덱스: ${idx}`);
-          return;
-        }
-      
-        if (!value || isNaN(value)) {
-          console.warn(`❗ ${nickname}의 점수 없음 또는 유효하지 않음`);
-          return;
-        }
-      
-        // 중복 방지: 이미 같은 기록이 존재하면 무시
+
+        if (!participants[idx]) return;
+        if (!value || isNaN(value)) return;
+
         const isDuplicate = conLogHistory.some(log =>
-          log.nickname === nickname &&
-          log.participant === blindName &&
-          log.value === value
+          log.nickname === nickname && log.participant === blindName && log.value === value
         );
-      
-        if (isDuplicate) {
-          console.log(`⛔ 이미 반영된 기록: ${nickname} → ${blindName}`);
-          return;
-        }
-      
-        // 점수 반영
+        if (isDuplicate) return;
+
         participants[idx].score += value;
         participants[idx].conTotal = (participants[idx].conTotal || 0) + value;
-      
-        // 로그 추가
+
         conLogHistory.push({
           nickname,
           participant: blindName,
           value,
           time: new Date().toLocaleString()
         });
-      
+
         delete pendingContributions[nickname];
-      
-        // 효과 및 렌더링
+
         triggerConfetti();
         updateLogFilterOptions();
         saveData();
         renderTable();
-      
+
         console.log(`✅ ${nickname} → ${blindName}에게 ${value}점 반영됨`);
       }
+    });
 
     function triggerConfetti() {
       if (window.confetti) {
@@ -356,13 +339,17 @@
       }
     }
 
-    function openModal() {
+    window.openModal = function () {
       document.getElementById('modal').style.display = 'block';
       setTimeout(() => document.getElementById('singer').focus(), 100);
     }
 
     function closeModal() {
       document.getElementById('modal').style.display = 'none';
+    }
+
+    function handleEnter(e) {
+      if (e.key === "Enter") addEntry();
     }
 
     function addEntry() {
@@ -380,14 +367,78 @@
       document.getElementById('singer').focus();
     }
 
-    function handleEnter(e) {
-      if (e.key === "Enter") addEntry();
-    }
-
-    function toggleSingerVisibility() {
+    window.toggleSingerVisibility = function () {
       showSingers = !showSingers;
       document.getElementById('toggleBtn').textContent = showSingers ? '참가자 감춤' : '참가자 표시';
       renderTable();
+    }
+
+    window.toggleSortMode = function () {
+      const btn = document.getElementById('sortToggleBtn');
+      if (!isSortedByScore) {
+        participants.sort((a, b) => (b.scoreTotal || 0) - (a.scoreTotal || 0));
+        isSortedByScore = true;
+        btn.textContent = '순서 정렬';
+      } else {
+        participants = [...originalOrder];
+        isSortedByScore = false;
+        btn.textContent = '순위 정렬';
+      }
+      document.querySelector("#scoreTable thead th:nth-child(2)").textContent = isSortedByScore ? "순위" : "순서";
+      renderTable();
+    }
+
+    window.openLogModal = function () {
+      updateLogFilterOptions();
+      document.getElementById("logFilterSelect").value = "";
+      filterLogByParticipant();
+      document.getElementById("logModal").style.display = "block";
+    }
+
+    window.openManualConModal = function () {
+      document.getElementById('manualConModal').style.display = 'block';
+    }
+
+    function closeManualConModal() {
+      document.getElementById('manualConModal').style.display = 'none';
+    }
+
+    function closeLogModal() {
+      document.getElementById("logModal").style.display = "none";
+    }
+
+    function filterLogByParticipant() {
+      const selected = document.getElementById("logFilterSelect").value;
+      const logBox = document.getElementById("logContent");
+
+      const filtered = conLogHistory.filter(log => {
+        return selected === "" || log.blindName === selected;
+      });
+
+      if (filtered.length === 0) {
+        logBox.textContent = "해당 참가자에게 할당된 콘 로그가 없습니다.";
+      } else {
+        logBox.textContent = filtered
+          .map(log => `🍿 [${log.time}] ${log.nickname} → ${log.blindName} (${log.value}점)`)
+          .join("\n");
+      }
+    }
+
+    function updateLogFilterOptions() {
+      const select = document.getElementById("logFilterSelect");
+      const currentValue = select.value;
+
+      const uniqueNames = [...new Set(conLogHistory.map(log => log.blindName))];
+
+      select.innerHTML = `<option value="">전체 보기</option>`;
+      uniqueNames.forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+      });
+
+      select.value = currentValue;
     }
 
     function renderTable() {
@@ -454,19 +505,14 @@
       openScoreModal(currentScoreIndex);
     }
 
-    function toggleSortMode() {
-      const btn = document.getElementById('sortToggleBtn');
-      if (!isSortedByScore) {
-        participants.sort((a, b) => (b.scoreTotal || 0) - (a.scoreTotal || 0));
-        isSortedByScore = true;
-        btn.textContent = '순서 정렬';
-      } else {
-        participants = [...originalOrder];
-        isSortedByScore = false;
-        btn.textContent = '순위 정렬';
+    function resetAll() {
+      if (confirm("정말 모든 데이터를 초기화하시겠습니까?")) {
+        localStorage.removeItem('participants');
+        localStorage.removeItem('originalOrder');
+        participants = [];
+        originalOrder = [];
+        renderTable();
       }
-      document.querySelector("#scoreTable thead th:nth-child(2)").textContent = isSortedByScore ? "순위" : "순서";
-      renderTable();
     }
 
     function resetSelectedCon() {
@@ -480,7 +526,6 @@
             participants[i][`judge${j}`] = 0;
           }
           participants[i].scoreTotal = 0;
-          // originalOrder에서도 동기화
           const ori = originalOrder[i];
           ori.conTotal = 0;
           ori.score = 0;
@@ -499,151 +544,6 @@
       }
     }
 
-    function saveData() {
-      localStorage.setItem('participants', JSON.stringify(participants));
-      localStorage.setItem('originalOrder', JSON.stringify(originalOrder));
-    }
-
-    function loadSavedData() {
-      const saved = localStorage.getItem('participants');
-      const original = localStorage.getItem('originalOrder');
-      if (saved) {
-        try {
-          participants = JSON.parse(saved);
-          originalOrder = original ? JSON.parse(original) : [...participants];
-
-          // 🔽 여기서 blindName 보정
-          participants.forEach((p, i) => {
-            if (!p.blindName) p.blindName = `참가자${i + 1}`;
-          });
-          originalOrder.forEach((p, i) => {
-            if (!p.blindName) p.blindName = `참가자${i + 1}`;
-          });
-
-          renderTable();
-        } catch (e) {
-          console.error('데이터 복원 실패:', e);
-          participants = [];
-          originalOrder = [];
-        }
-      }
-    }
-
-    function resetAll() {
-      if (confirm("정말 모든 데이터를 초기화하시겠습니까?")) {
-        localStorage.removeItem('participants');
-        localStorage.removeItem('originalOrder');
-        participants = [];
-        originalOrder = [];
-        renderTable();
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadSavedData();
-      purgeDuplicateConScores();  // ← 여기에 추가
-    });
-
-    function logConAssignment(nickname, blindName, value) {
-      const now = new Date().toLocaleTimeString();
-      conLogHistory.unshift({
-        nickname,
-        blindName,
-        value,
-        time: now
-      });
-
-      updateLogFilterOptions();  // 참가자 드롭다운 동기화
-    }
-
-    function updateLogFilterOptions() {
-      const select = document.getElementById("logFilterSelect");
-      const currentValue = select.value;
-
-      const uniqueNames = [...new Set(conLogHistory.map(log => log.blindName))];
-
-      select.innerHTML = `<option value="">전체 보기</option>`;
-      uniqueNames.forEach(name => {
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        select.appendChild(option);
-      });
-
-      select.value = currentValue; // 기존 선택 유지
-    }
-    function openLogModal() {
-      updateLogFilterOptions();
-      document.getElementById("logFilterSelect").value = "";
-      filterLogByParticipant();
-      document.getElementById("logModal").style.display = "block";
-    }
-
-    function closeLogModal() {
-      document.getElementById("logModal").style.display = "none";
-    }
-
-    function filterLogByParticipant() {
-      const selected = document.getElementById("logFilterSelect").value;
-      const logBox = document.getElementById("logContent");
-
-      const filtered = conLogHistory.filter(log => {
-        return selected === "" || log.blindName === selected;
-      });
-
-      if (filtered.length === 0) {
-        logBox.textContent = "해당 참가자에게 할당된 콘 로그가 없습니다.";
-      } else {
-        logBox.textContent = filtered
-          .map(log => `🍿 [${log.time}] ${log.nickname} → ${log.blindName} (${log.value}점)`)
-          .join("\n");
-      }
-    }
-    function purgeDuplicateConScores() {
-      if (!Array.isArray(conLogHistory)) {
-        console.warn("⚠️ conLogHistory 없음");
-        return;
-      }
-      if (!Array.isArray(participants)) {
-        console.warn("⚠️ participants 없음");
-        return;
-      }
-    
-      const seenKeys = new Set();
-      const validLogs = [];
-    
-      for (const log of conLogHistory) {
-        const key = `${log.nickname}|${log.participant}|${log.value}`;
-        const idx = participants.findIndex(p => p.blindName === log.participant);
-    
-        if (idx === -1) continue;
-    
-        if (!seenKeys.has(key)) {
-          seenKeys.add(key);
-          validLogs.push(log); // 첫 기록 유지
-        } else {
-          participants[idx].score -= log.value;
-          participants[idx].conTotal -= log.value;
-          if (participants[idx].score < 0) participants[idx].score = 0;
-          if (participants[idx].conTotal < 0) participants[idx].conTotal = 0;
-          console.log(`❌ 중복 점수 차감됨: ${key}`);
-        }
-      }
-    
-      conLogHistory = validLogs;
-      saveData();
-      renderTable();
-      console.log("✅ 중복 콘 점수 정리 완료");
-    }
-
-      function openManualConModal() {
-      document.getElementById('manualConModal').style.display = 'block';
-    }
-
-    function closeManualConModal() {
-      document.getElementById('manualConModal').style.display = 'none';
-    }
-    
     function applyManualCon() {
       const nickname = document.getElementById('manualNickname').value.trim();
       const target = parseInt(document.getElementById('manualTarget').value);
@@ -663,7 +563,6 @@
       participants[idx].score += amount;
       participants[idx].conTotal = (participants[idx].conTotal || 0) + amount;
 
-      // 로그 기록
       const blindName = participants[idx].blindName || `참가자${target}`;
       contributionLogs.push({
         nickname,
@@ -679,7 +578,69 @@
       updateLogFilterOptions();
       closeManualConModal();
     }
-  })
-  </script>
+
+    function purgeDuplicateConScores() {
+      if (!Array.isArray(conLogHistory)) return;
+      if (!Array.isArray(participants)) return;
+
+      const seenKeys = new Set();
+      const validLogs = [];
+
+      for (const log of conLogHistory) {
+        const key = `${log.nickname}|${log.participant}|${log.value}`;
+        const idx = participants.findIndex(p => p.blindName === log.participant);
+
+        if (idx === -1) continue;
+
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          validLogs.push(log);
+        } else {
+          participants[idx].score -= log.value;
+          participants[idx].conTotal -= log.value;
+          if (participants[idx].score < 0) participants[idx].score = 0;
+          if (participants[idx].conTotal < 0) participants[idx].conTotal = 0;
+          console.log(`❌ 중복 점수 차감됨: ${key}`);
+        }
+      }
+
+      conLogHistory = validLogs;
+      saveData();
+      renderTable();
+      console.log("✅ 중복 콘 점수 정리 완료");
+    }
+
+    function saveData() {
+      localStorage.setItem('participants', JSON.stringify(participants));
+      localStorage.setItem('originalOrder', JSON.stringify(originalOrder));
+    }
+
+    function loadSavedData() {
+      const saved = localStorage.getItem('participants');
+      const original = localStorage.getItem('originalOrder');
+      if (saved) {
+        try {
+          participants = JSON.parse(saved);
+          originalOrder = original ? JSON.parse(original) : [...participants];
+          participants.forEach((p, i) => {
+            if (!p.blindName) p.blindName = `참가자${i + 1}`;
+          });
+          originalOrder.forEach((p, i) => {
+            if (!p.blindName) p.blindName = `참가자${i + 1}`;
+          });
+          renderTable();
+        } catch (e) {
+          participants = [];
+          originalOrder = [];
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSavedData();
+      purgeDuplicateConScores();
+    });
+    </script>
+
 </body>
 </html>
