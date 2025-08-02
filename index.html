@@ -268,7 +268,18 @@
         let lastCoinSender = null;
     
         function showVersion() {
-            const version = 'v.2025.08.02.15';
+            const now = new Date();
+            const version =
+                "v." +
+                now.getFullYear() +
+                "." +
+                String(now.getMonth() + 1).padStart(2, '0') +
+                "." +
+                String(now.getDate()).padStart(2, '0') +
+                "." +
+                String(now.getHours()).padStart(2, '0') +
+                String(now.getMinutes()).padStart(2, '0');
+                
             const versionDiv = document.createElement('div');
             versionDiv.textContent = version;
             versionDiv.style.position = 'fixed';
@@ -281,6 +292,7 @@
             document.body.appendChild(versionDiv);
             console.log(`✅ 현재 스크립트 버전: ${version}`);
         }
+
     
         window.addEventListener("message", (event) => {
             const { type, con, amount, nickname, 참가자, raw } = event.data;
@@ -762,6 +774,7 @@
     </script>
 </body>
 </html>
+
 
 
 
