@@ -602,9 +602,52 @@
       console.log("✅ 중복 제거 완료");
     }
 
+    function purgeDuplicateConScores() {
+      if (!Array.isArray(conLogHistory)) {
+        console.warn("⚠️ conLogHistory 없음");
+        return;
+      }
+      if (!Array.isArray(participants)) {
+        console.warn("⚠️ participants 없음");
+        return;
+      }
+    
+      const seenKeys = new Set();
+      const validLogs = [];
+    
+      for (const log of conLogHistory) {
+        const key = `${log.nickname}|${log.참가자}|${log.amount}`;
+        const idx = participants.findIndex(p => p.blindName === log.참가자);
+    
+        if (idx === -1) continue;
+    
+        if (!seenKeys.has(key)) {
+          // 처음 등장한 조합이면 통과
+          seenKeys.add(key);
+          validLogs.push(log);
+        } else {
+          // 이미 처리된 조합이면 중복 → 차감
+          participants[idx].score -= log.amount;
+          participants[idx].conTotal -= log.amount;
+          if (participants[idx].score < 0) participants[idx].score = 0;
+          if (participants[idx].conTotal < 0) participants[idx].conTotal = 0;
+    
+          console.log(`❌ 중복 점수 차감됨: ${key}`);
+        }
+      }
+    
+      conLogHistory = validLogs;
+      saveData();
+      renderTable();
+      console.log("✅ 중복 콘 점수 정리 완료");
+    }
+
+  purgeDuplicateConScores();
+
   </script>
 </body>
 </html>
+
 
 
 
