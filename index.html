@@ -284,41 +284,58 @@
       renderTable();
     }
   
-    if (type === "assign") {
-      const nickname = event.data.nickname;
-      const targetNum = parseInt(event.data.참가자);
-      const idx = targetNum - 1;
-  
-      const value = pendingContributions[nickname];
-      const blindName = participants[idx]?.blindName || `참가자${idx + 1}`;
-      const key = `${nickname}#${idx}`;
-  
-      if (value && participants[idx] && !assignedHistory.has(key)) {
+      if (type === "assign") {
+        const nickname = event.data.nickname;
+        const targetNum = parseInt(event.data.참가자);
+        const idx = targetNum - 1;
+      
+        const value = pendingContributions[nickname];
+        const blindName = participants[idx]?.blindName || `참가자${idx + 1}`;
+      
+        if (!participants[idx]) {
+          console.warn(`❗ 유효하지 않은 참가자 인덱스: ${idx}`);
+          return;
+        }
+      
+        if (!value || isNaN(value)) {
+          console.warn(`❗ ${nickname}의 점수 없음 또는 유효하지 않음`);
+          return;
+        }
+      
+        // 중복 방지: 이미 같은 기록이 존재하면 무시
+        const isDuplicate = conLogHistory.some(log =>
+          log.nickname === nickname &&
+          log.participant === blindName &&
+          log.value === value
+        );
+      
+        if (isDuplicate) {
+          console.log(`⛔ 이미 반영된 기록: ${nickname} → ${blindName}`);
+          return;
+        }
+      
+        // 점수 반영
         participants[idx].score += value;
         participants[idx].conTotal = (participants[idx].conTotal || 0) + value;
-  
-        assignedHistory.add(key);
-        delete pendingContributions[nickname];
-  
+      
         // 로그 추가
-        contributionLogs.push({
+        conLogHistory.push({
           nickname,
           participant: blindName,
-          amount: value,
+          value,
           time: new Date().toLocaleString()
         });
-  
-        // 효과
+      
+        delete pendingContributions[nickname];
+      
+        // 효과 및 렌더링
         triggerConfetti();
         renderLogModalOptions();
         saveData();
         renderTable();
+      
         console.log(`✅ ${nickname} → ${blindName}에게 ${value}점 반영됨`);
-      } else {
-        console.log(`⛔ 중복이거나 유효하지 않음: ${nickname} → ${blindName}`);
       }
-    }
-  });
 
     function triggerConfetti() {
       if (window.confetti) {
@@ -616,6 +633,7 @@
   </script>
 </body>
 </html>
+
 
 
 
