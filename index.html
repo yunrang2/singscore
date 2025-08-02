@@ -268,20 +268,11 @@
         let lastCoinSender = null;
     
         function showVersion() {
-            const now = new Date();
-            const version =
-                "v." +
-                now.getFullYear() +
-                "." +
-                String(now.getMonth() + 1).padStart(2, '0') +
-                "." +
-                String(now.getDate()).padStart(2, '0') +
-                "." +
-                String(now.getHours()).padStart(2, '0') +
-                String(now.getMinutes()).padStart(2, '0');
-                
+            const savedVersion = localStorage.getItem("custom_version") || "v.2025.08.02.17";
+        
             const versionDiv = document.createElement('div');
-            versionDiv.textContent = version;
+            versionDiv.textContent = savedVersion;
+            versionDiv.id = "versionDisplay";
             versionDiv.style.position = 'fixed';
             versionDiv.style.top = '5px';
             versionDiv.style.left = '5px';
@@ -289,10 +280,18 @@
             versionDiv.style.color = '#333';
             versionDiv.style.textShadow = '1px 1px 0 white';
             versionDiv.style.zIndex = '9999';
+            versionDiv.style.cursor = 'pointer';
+        
+            versionDiv.addEventListener('click', () => {
+                const newVersion = prompt("새 버전명을 입력하세요:", savedVersion);
+                if (newVersion) {
+                    localStorage.setItem("custom_version", newVersion);
+                    versionDiv.textContent = newVersion;
+                }
+            });
+        
             document.body.appendChild(versionDiv);
-            console.log(`✅ 현재 스크립트 버전: ${version}`);
         }
-
     
         window.addEventListener("message", (event) => {
             const { type, con, amount, nickname, 참가자, raw } = event.data;
@@ -796,6 +795,7 @@
     </script>
 </body>
 </html>
+
 
 
 
