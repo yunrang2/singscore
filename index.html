@@ -267,46 +267,10 @@
         let assignedHistory = new Set();
         let lastCoinSender = null;
     
-        function showVersion() {
-            const savedVersion = localStorage.getItem("custom_version") || "v.2025.08.02.17";
-        
-            const versionDiv = document.createElement('div');
-            versionDiv.textContent = savedVersion;
-            versionDiv.id = "versionDisplay";
-            versionDiv.style.position = 'fixed';
-            versionDiv.style.top = '5px';
-            versionDiv.style.left = '5px';
-            versionDiv.style.fontSize = '10px';
-            versionDiv.style.color = '#333';
-            versionDiv.style.textShadow = '1px 1px 0 white';
-            versionDiv.style.zIndex = '9999';
-            versionDiv.style.cursor = 'pointer';
-        
-            versionDiv.addEventListener('click', () => {
-                const newVersion = prompt("새 버전명을 입력하세요:", savedVersion);
-                if (newVersion) {
-                    localStorage.setItem("custom_version", newVersion);
-                    versionDiv.textContent = newVersion;
-                }
-            });
-        
-            document.body.appendChild(versionDiv);
-        }
-    
-        window.addEventListener("message", (event) => {
-            const { type, con, amount, nickname, 참가자, raw } = event.data;
-        
-            const msgHash = JSON.stringify(event.data);
-            if (msgHash === lastMessageHash) return;
-            lastMessageHash = msgHash;
-        
-            console.log("💌 메시지 수신 및 처리 시작:", event.data);
-        
-            // 콘 후원 자동 반영
             if (type === "coin") {
                 const value = parseInt(amount ?? con);
             
-                // nickname이 없으면 raw에서 추출
+                // nickname 없으면 raw에서 추출
                 let nicknameFixed = nickname;
                 if ((!nicknameFixed || typeof nicknameFixed !== 'string') && raw) {
                     const nickMatch = raw.match(/(.+?)\(.+?\)님이/);
@@ -321,21 +285,13 @@
                     return;
                 }
             
-                // 완전 중복 메시지 차단 (같은 데이터 두 번 수신 방지)
-                const msgHash = JSON.stringify(event.data);
-                if (msgHash === lastMessageHash) {
-                    console.log("🔁 동일한 메시지 무시됨 (중복 전송):", msgHash);
-                    return;
-                }
-                lastMessageHash = msgHash;
-            
-                // 후원자 기준 중복 방지
+                // 같은 후원자에게 이미 점수 반영했으면 무시
                 if (assignedHistory.has(nicknameFixed)) {
                     console.log(`❌ 중복 할당 방지됨: ${nicknameFixed}`);
                     return;
                 }
             
-                // 체크된 참가자 찾기
+                // 체크된 참가자 중 첫 번째 찾기
                 const checkboxes = document.querySelectorAll('#tableBody input[type="checkbox"]');
                 let checkedIndex = null;
                 checkboxes.forEach((cb, idx) => {
@@ -349,9 +305,11 @@
                     // 중복 방지 등록
                     assignedHistory.add(nicknameFixed);
             
+                    // 점수 반영
                     targetParticipant.score += value;
                     targetParticipant.conTotal = (targetParticipant.conTotal || 0) + value;
             
+                    // 로그 추가 (시간 포함)
                     conLogHistory.push({
                         nickname: nicknameFixed,
                         participant: blindName,
@@ -366,11 +324,12 @@
                     renderTable();
                     console.log(`✅ ${nicknameFixed} → ${blindName}에게 ${value}점 자동 반영됨`);
                 } else {
-                    // 선택된 참가자 없음 → 보류
+                    // 체크된 참가자 없음 → 보류 상태로 저장
                     pendingContributions[nicknameFixed] = (pendingContributions[nicknameFixed] || 0) + value;
-                    console.log(`💰 보류된 점수 저장: ${nicknameFixed} → ${value}점 (선택된 참가자 없음)`);
+                    console.log(`💰 보류된 점수 저장: ${nicknameFixed} → ${value}점 (노래 중인 참가자가 없음)`);
                 }
             }
+
 
 
         
@@ -795,6 +754,7 @@
     </script>
 </body>
 </html>
+
 
 
 
