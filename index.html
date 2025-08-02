@@ -264,12 +264,11 @@
         let pendingContributions = {};
         let isSortedByScore = false;
         let conLogHistory = [];
-        let contributionLogs = [];
         let assignedHistory = new Set();
         let lastCoinSender = null;
     
         function showVersion() {
-            const version = 'v.2025.08.02.10';
+            const version = 'v.2025.08.02.11';
             const versionDiv = document.createElement('div');
             versionDiv.textContent = version;
             versionDiv.style.position = 'fixed';
@@ -285,11 +284,14 @@
     
         window.addEventListener("message", (event) => {
             const { type, con, amount, 참가자, nickname, raw } = event.data;
-            console.log("💌 메시지 수신됨:", event.data);
+            // console.log("💌 메시지 수신됨:", event.data); // 디버깅용: 메시지 수신 시점에만 로그를 남김
     
             const msgHash = JSON.stringify(event.data);
             if (msgHash === lastMessageHash) return;
             lastMessageHash = msgHash;
+            
+            // 메시지 수신 로그는 중복 방지 로직 통과 후에 남깁니다.
+            console.log("💌 메시지 수신 및 처리 시작:", event.data);
     
             if (type === "coin") {
                 const value = parseInt(amount ?? con);
@@ -299,9 +301,8 @@
                 if (activeIndex !== null && participants[activeIndex]) {
                     const targetParticipant = participants[activeIndex];
                     const blindName = targetParticipant.blindName || `참가자${activeIndex + 1}`;
-                    const logKey = `${nickname}|${blindName}|${value}`;
+                    const logKey = `${nickname}|${blindName}|${value}|${Date.now()}`; // 고유 키에 타임스탬프 추가
                     
-                    // 중복 할당 방지
                     if (assignedHistory.has(logKey)) {
                         console.log(`❌ 중복 할당 시도 방지 (자동 반영): ${logKey}`);
                         return;
@@ -351,7 +352,7 @@
                 
                 const blindName = participants[idx].blindName || `참가자${idx + 1}`;
                 
-                const logKey = `${senderNickname}|${blindName}|${value}`;
+                const logKey = `${senderNickname}|${blindName}|${value}|${Date.now()}`;
                 if (assignedHistory.has(logKey)) {
                     console.log(`❌ 중복 할당 시도 방지: ${logKey}`);
                     return;
@@ -752,6 +753,7 @@
     </script>
 </body>
 </html>
+
 
 
 
