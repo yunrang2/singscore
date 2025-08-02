@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <title>무어네 깨알 노래자랑</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
   <style>
     @font-face {
       font-family: 'DNFBitBitv2';
@@ -10,66 +13,106 @@
       font-weight: normal;
       font-style: normal;
     }
+
     * {
       font-family: 'DNFBitBitv2', sans-serif;
       font-weight: normal;
+      color: white;
       text-shadow:
         -1px -1px 0 #000,
-         1px -1px 0 #000,
+        1px -1px 0 #000,
         -1px  1px 0 #000,
-         1px  1px 0 #000;
+        1px  1px 0 #000,
+        0px -1px 0 #000,
+        0px  1px 0 #000,
+        -1px  0px 0 #000,
+        1px  0px 0 #000,
+        -2px  0px 0 #000,
+        2px  0px 0 #000,
+        0px -2px 0 #000,
+        0px  2px 0 #000;
+
     }
+
     body {
-      background: #00ff00; /* 초록 배경 */
-      color: white;
+      background: #00ff00;
       text-align: center;
+      margin: 0;
+      padding-top: 60px; /* ✅ 배너 높이만큼 밀어주기 */
     }
+
     table {
       margin: 20px auto;
       border-collapse: collapse;
       width: 100%;
       table-layout: fixed;
-      background: black; /* 표 배경 검정 */
+      background: #ffc0cb; /* 표 배경 핑크 */
     }
+
     th, td {
-      border: 1px solid white;
+      border: 1px solid #ff69b4;
       padding: 6px;
       font-size: clamp(10px, 1.5vw, 16px);
       text-align: center;
       word-break: break-word;
+      background-color: #ffc0cb;
     }
+
     th {
       white-space: nowrap;
     }
+
     input[type="number"] {
       width: 50px;
       max-width: 100%;
     }
+
     input, button {
       font-size: 16px;
       padding: 6px;
       margin: 4px;
-      color: white; /* 버튼 글씨 흰색 */
-      background: #222; /* 버튼 배경은 어두운 회색 */
-      border: 1px solid #888;
+      background: #ff69b4;
+      color: white;
+      border: 2px solid black;
+      border-radius: 6px;
+      box-shadow: 1px 1px 0 #000;
+      transition: all 0.2s ease;
     }
+
     button {
-    font-size: 16px;
-    padding: 8px 14px;
-    margin: 4px;
-    color: white;
-    background: #007bff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.2s ease;
+      padding: 8px 14px;
+      cursor: pointer;
     }
+
     button:hover {
-      background: #0056b3;
+      background: #ff85c1;
+      transform: scale(1.05);
+      box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     }
+
     button:active {
-      background: #004080;
+      background: #cc3385;
+      transform: scale(0.97);
     }
+
+    .score-button {
+      font-size: 10px;
+      padding: 2px 4px;
+      background-color: #ff69b4;
+      border: 1px solid black;
+      border-radius: 4px;
+    }
+
+    .score-button:hover {
+      background-color: #ff85c1;
+      transform: scale(1.05);
+    }
+
+    .score-button:active {
+      background-color: #cc3385;
+      transform: scale(0.97);
+    }
+
     #modal {
       display: none;
       position: fixed;
@@ -80,40 +123,60 @@
       height: 100%;
       background-color: rgba(0,0,0,0.8);
     }
+
     #modalContent {
-      background-color: #222;
+      background-color: #ffc0cb;
       margin: 10% auto;
       padding: 20px;
-      border: 1px solid #888;
+      border: 2px solid #ff69b4;
       width: 300px;
     }
+
     #closeModal {
       float: right;
       cursor: pointer;
       color: red;
     }
+
     .active-row {
-      background-color: red !important;
+      background-color: #ff1493 !important;
     }
-    .score-button {
-      font-size: 10px;
-      padding: 2px 4px;
-    }
+
     #toggleJudgeBtnModal {
       position: absolute;
       top: 10px;
       right: 10px;
       font-size: 12px;
       padding: 2px 6px;
+      background: #ff69b4;
+      border: 1px solid black;
+      border-radius: 4px;
     }
+
+    #scoreInputModal {
+      display: none;
+      position: fixed;
+      z-index: 1001;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+    }
+
     #scoreInputModalContent {
       position: relative;
-      background: #222;
+      background: #ffc0cb;
       width: 300px;
       margin: 10% auto;
       padding: 20px;
-      border: 1px solid #888;
+      border: 2px solid #ff69b4;
     }
+
+    #logContent {
+      text-shadow: none !important;
+    }
+
   </style>
 </head>
 <body>
@@ -123,9 +186,13 @@
   </div>
 
   <h1>🎤 무어네 깨알 노래자랑</h1>
+
   <button onclick="openModal()">참여자 추가</button>
   <button id="toggleBtn" onclick="toggleSingerVisibility()">참가자 표시</button>
   <button id="sortToggleBtn" onclick="toggleSortMode()">순위 정렬</button>
+  <button onclick="openLogModal()">로그 보기</button>
+
+
 
   <div id="modal">
     <div id="modalContent">
@@ -146,7 +213,7 @@
           <th><span id="singerHeaderText">참가자 (비공개)</span></th>
           <th>노래 제목</th>
           <th>점수 입력</th>
-          <th>누적 콘 수</th>
+          <th>콘 점수</th>
           <th>총 점수</th>
         </tr>
       </thead>
@@ -164,6 +231,22 @@
     </div>
   </div>
 
+  <div id="logModal" style="display:none; position:fixed; z-index:1001; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
+    <div style="background:#fff0f5; color:#333; max-width:500px; width:90%; margin:10% auto; padding:20px; border:2px solid #ff69b4; position:relative;">
+      <span onclick="closeLogModal()" style="position:absolute; top:10px; right:15px; color:red; cursor:pointer;">✖</span>
+      <h2 style="margin-top:0;">콘 점수 로그</h2>
+
+      <!-- 🔽 참가자 필터 -->
+      <select id="logFilterSelect" onchange="filterLogByParticipant()" style="margin-bottom:10px; padding:5px; width:100%;">
+        <option value="">전체 보기</option>
+      </select>
+
+      <!-- 🔽 로그 출력 -->
+      <div id="logContent" style="height:300px; overflow-y:auto; font-size:14px; white-space:pre-line; background:#fff; border:1px solid #ccc; padding:10px; color:#000;"></div>
+    </div>
+  </div>
+
+
   <script>
     let participants = [];
     let originalOrder = [];
@@ -174,27 +257,35 @@
     let lastMessageHash = null;
     let pendingContributions = {};
     let isSortedByScore = false;
+    let conLogHistory = []; // [{ nickname, blindName, value, time }]
+
 
     window.addEventListener("message", (event) => {
       const { type, con, amount, 참가자, raw } = event.data;
-      if (type === "coin") {
-        const value = parseInt(amount ?? con);
-        const text = raw || "";
-        if (!value || isNaN(value)) return;
-        const msgHash = JSON.stringify(event.data);
-        if (msgHash === lastMessageHash) return;
-        lastMessageHash = msgHash;
 
+      // 공통 변수
+      const value = parseInt(amount ?? con);
+      const text = raw || "";
+      if (!value || isNaN(value)) return;
+
+      const msgHash = JSON.stringify(event.data);
+      if (msgHash === lastMessageHash) return;
+      lastMessageHash = msgHash;
+
+      if (type === "coin") {
         const nickMatch = text.match(/(.+?)\(.+?\)님이/);
         const nickname = nickMatch ? nickMatch[1].trim() : null;
 
         if (activeIndex !== null && participants[activeIndex]) {
           participants[activeIndex].score += value;
           participants[activeIndex].conTotal = (participants[activeIndex].conTotal || 0) + value;
+          launchConfetti();  // 🎉 콘 점수 증가 시 폭죽 효과
         } else if (nickname) {
           pendingContributions[nickname] = (pendingContributions[nickname] || 0) + value;
         }
-        saveData(); renderTable();
+
+        saveData();
+        renderTable();
       }
 
       if (type === "assign") {
@@ -202,14 +293,30 @@
         const targetNum = parseInt(event.data.참가자);
         const idx = targetNum - 1;
         const value = pendingContributions[nickname];
+
         if (value && participants[idx]) {
           participants[idx].score += value;
           participants[idx].conTotal = (participants[idx].conTotal || 0) + value;
           delete pendingContributions[nickname];
-          saveData(); renderTable();
+          launchConfetti();  // 🎉 수동 할당으로 점수 들어갈 때도 폭죽
+          saveData();
+          renderTable();
         }
       }
     });
+
+    function launchConfetti() {
+      if (typeof confetti === "function") {
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 },
+          zIndex: 9999,
+        });
+      }
+    }
+
+
 
     function openModal() {
       document.getElementById('modal').style.display = 'block';
@@ -224,7 +331,8 @@
       const singer = document.getElementById('singer').value.trim();
       const song = document.getElementById('song').value.trim();
       if (!singer || !song) return alert("참가자명과 노래 제목은 필수입니다.");
-      const newEntry = { singer, song, score: 0, conTotal: 0 };
+      const blindName = `참가자${participants.length + 1}`;
+      const newEntry = { singer, song, score: 0, conTotal: 0, blindName };
       for (let i = 1; i <= judgeCount; i++) newEntry[`judge${i}`] = 0;
       participants.push(newEntry);
       originalOrder.push(newEntry);
@@ -248,7 +356,7 @@
       const tbody = document.getElementById('tableBody');
       tbody.innerHTML = '';
       participants.forEach((p, i) => {
-        const name = showSingers ? p.singer : `참가자${i + 1}`;
+        const name = showSingers ? p.singer : p.blindName;
         const judgeScores = Array.from({ length: judgeCount }, (_, j) => p[`judge${j + 1}`] || 0);
         const totalScore = judgeScores.reduce((a, b) => a + b, p.score);
         p.scoreTotal = totalScore;
@@ -282,6 +390,7 @@
         const val = p[`judge${i + 1}`] || 0;
         container.innerHTML += `<label>점수${i + 1}: <input type="number" id="scoreInput${i}" value="${val}"></label><br><br>`;
       }
+      document.getElementById('toggleJudgeBtnModal').textContent = (judgeCount === 3) ? '삭제' : '추가';
       document.getElementById('scoreInputModal').style.display = 'block';
     }
 
@@ -318,6 +427,7 @@
         isSortedByScore = false;
         btn.textContent = '순위 정렬';
       }
+      document.querySelector("#scoreTable thead th:nth-child(2)").textContent = isSortedByScore ? "순위" : "순서";
       renderTable();
     }
 
@@ -363,6 +473,15 @@
         try {
           participants = JSON.parse(saved);
           originalOrder = original ? JSON.parse(original) : [...participants];
+
+          // 🔽 여기서 blindName 보정
+          participants.forEach((p, i) => {
+            if (!p.blindName) p.blindName = `참가자${i + 1}`;
+          });
+          originalOrder.forEach((p, i) => {
+            if (!p.blindName) p.blindName = `참가자${i + 1}`;
+          });
+
           renderTable();
         } catch (e) {
           console.error('데이터 복원 실패:', e);
@@ -385,6 +504,63 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadSavedData();
     });
+
+    function logConAssignment(nickname, blindName, value) {
+      const now = new Date().toLocaleTimeString();
+      conLogHistory.unshift({
+        nickname,
+        blindName,
+        value,
+        time: now
+      });
+
+      updateLogFilterOptions();  // 참가자 드롭다운 동기화
+    }
+
+    function updateLogFilterOptions() {
+      const select = document.getElementById("logFilterSelect");
+      const currentValue = select.value;
+
+      const uniqueNames = [...new Set(conLogHistory.map(log => log.blindName))];
+
+      select.innerHTML = `<option value="">전체 보기</option>`;
+      uniqueNames.forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+      });
+
+      select.value = currentValue; // 기존 선택 유지
+    }
+    function openLogModal() {
+      updateLogFilterOptions();
+      document.getElementById("logFilterSelect").value = "";
+      filterLogByParticipant();
+      document.getElementById("logModal").style.display = "block";
+    }
+
+    function closeLogModal() {
+      document.getElementById("logModal").style.display = "none";
+    }
+
+    function filterLogByParticipant() {
+      const selected = document.getElementById("logFilterSelect").value;
+      const logBox = document.getElementById("logContent");
+
+      const filtered = conLogHistory.filter(log => {
+        return selected === "" || log.blindName === selected;
+      });
+
+      if (filtered.length === 0) {
+        logBox.textContent = "해당 참가자에게 할당된 콘 로그가 없습니다.";
+      } else {
+        logBox.textContent = filtered
+          .map(log => `🍿 [${log.time}] ${log.nickname} → ${log.blindName} (${log.value}점)`)
+          .join("\n");
+      }
+    }
+
   </script>
 </body>
 </html>
