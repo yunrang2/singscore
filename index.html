@@ -306,52 +306,62 @@
             // 콘 후원 자동 반영
             if (type === "coin") {
                 const value = parseInt(amount ?? con);
-                if (!value || isNaN(value) || !nickname) {
+            
+                // nickname이 없으면 raw에서 추출
+                let nicknameFixed = nickname;
+                if ((!nicknameFixed || typeof nicknameFixed !== 'string') && raw) {
+                    const nickMatch = raw.match(/(.+?)\(.+?\)님이/);
+                    if (nickMatch) {
+                        nicknameFixed = nickMatch[1].trim();
+                        console.log(`🔧 raw에서 nickname 추출됨: ${nicknameFixed}`);
+                    }
+                }
+            
+                if (!value || isNaN(value) || !nicknameFixed) {
                     console.log("⚠️ 팝콘 메시지 처리 실패: 점수 또는 닉네임 정보가 없습니다.");
                     return;
                 }
-        
-                // 체크된 참가자 중 첫 번째를 찾아 자동 반영
+            
+                // 체크된 참가자 찾기
                 const checkboxes = document.querySelectorAll('#tableBody input[type="checkbox"]');
                 let checkedIndex = null;
                 checkboxes.forEach((cb, idx) => {
                     if (cb.checked && checkedIndex === null) checkedIndex = idx;
                 });
-        
+            
                 if (checkedIndex !== null && participants[checkedIndex]) {
                     const targetParticipant = participants[checkedIndex];
                     const blindName = targetParticipant.blindName || `참가자${checkedIndex + 1}`;
-                    const logKey = `${nickname}|${blindName}|${value}|${Date.now()}`;
-        
+                    const logKey = `${nicknameFixed}|${blindName}|${value}`;
+            
                     if (assignedHistory.has(logKey)) {
-                        console.log(`❌ 중복 할당 시도 방지 (자동 반영): ${logKey}`);
+                        console.log(`❌ 중복 할당 방지됨: ${logKey}`);
                         return;
                     }
+            
                     assignedHistory.add(logKey);
-        
                     targetParticipant.score += value;
                     targetParticipant.conTotal = (targetParticipant.conTotal || 0) + value;
-        
+            
                     conLogHistory.push({
-                        nickname: nickname,
+                        nickname: nicknameFixed,
                         participant: blindName,
                         value,
                         time: new Date().toLocaleString(),
                         logKey
                     });
-        
+            
                     triggerConfetti();
                     updateLogFilterOptions();
                     saveData();
                     renderTable();
-                    console.log(`✅ ${nickname} → ${blindName}에게 ${value}점 자동 반영됨`);
-        
+                    console.log(`✅ ${nicknameFixed} → ${blindName}에게 ${value}점 자동 반영됨`);
                 } else {
-                    // 체크된 참가자 없으면 보류 처리
-                    pendingContributions[nickname] = (pendingContributions[nickname] || 0) + value;
-                    console.log(`💰 보류된 점수 저장: ${nickname} → ${value}점 (노래 중인 참가자가 없음)`);
+                    pendingContributions[nicknameFixed] = (pendingContributions[nicknameFixed] || 0) + value;
+                    console.log(`💰 보류된 점수 저장: ${nicknameFixed} → ${value}점 (노래 중인 참가자가 없음)`);
                 }
             }
+
         
             // @참가자N 명령어 처리
             if (type === "assign") {
@@ -774,6 +784,7 @@
     </script>
 </body>
 </html>
+
 
 
 
