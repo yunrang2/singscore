@@ -190,6 +190,7 @@
     <button id="toggleBtn" onclick="toggleSingerVisibility()">참가자 표시</button>
     <button id="sortToggleBtn" onclick="toggleSortMode()">순위 정렬</button>
     <button onclick="openLogModal()">로그 보기</button>
+    <button onclick="reprocessConLogs()">로그 재처리</button>
     <button onclick="openManualConModal()">콘 수동 반영</button>
 
     <div id="modal">
@@ -269,7 +270,7 @@
     
         // === 버전 정보 표시 함수 추가 ===
         function showVersion() {
-            const version = 'v.2025.08.02.01'; // 수정한 날짜를 기준으로 버전명 지정
+            const version = 'v.2025.08.02.02';
             const versionDiv = document.createElement('div');
             versionDiv.textContent = version;
             versionDiv.style.position = 'fixed';
@@ -348,6 +349,32 @@
                 console.log(`✅ ${senderNickname} → ${blindName}에게 ${value}점 반영됨`);
             }
         });
+    
+        // === 로그를 기반으로 점수 재처리하는 함수 추가 ===
+        window.reprocessConLogs = function() {
+            if (!confirm("저장된 로그를 바탕으로 모든 콘 점수를 재반영하시겠습니까?\n기존 점수는 초기화됩니다.")) {
+                return;
+            }
+    
+            // 참가자들의 모든 콘 점수 초기화
+            participants.forEach(p => {
+                p.score = 0;
+                p.conTotal = 0;
+            });
+    
+            // 로그 기록을 다시 순회하며 점수 반영
+            conLogHistory.forEach(log => {
+                const participantIndex = participants.findIndex(p => p.blindName === log.participant);
+                if (participantIndex !== -1) {
+                    participants[participantIndex].score += log.value;
+                    participants[participantIndex].conTotal += log.value;
+                }
+            });
+    
+            console.log("✅ 로그를 바탕으로 모든 점수 재반영 완료!");
+            saveData();
+            renderTable();
+        };
     
         function triggerConfetti() {
             if (window.confetti) {
@@ -689,12 +716,13 @@
     
         document.addEventListener('DOMContentLoaded', () => {
             loadSavedData();
-            showVersion(); // 페이지 로딩 시 버전 표시
+            showVersion();
         });
     </script>
 
 </body>
 </html>
+
 
 
 
