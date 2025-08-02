@@ -1,645 +1,684 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>무어네 깨알 노래자랑</title>
+    <meta charset="UTF-8" />
+    <title>무어네 깨알 노래자랑</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-  <style>
-    @font-face {
-      font-family: 'DNFBitBitv2';
-      src: url('https://cdn.jsdelivr.net/gh/yunrang2/upload@master/DNFBitBitv2.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
+    <style>
+        @font-face {
+            font-family: 'DNFBitBitv2';
+            src: url('https://cdn.jsdelivr.net/gh/yunrang2/upload@master/DNFBitBitv2.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
 
-    * {
-      font-family: 'DNFBitBitv2', sans-serif;
-      font-weight: normal;
-      color: white;
-      text-shadow:
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px  1px 0 #000,
-        1px  1px 0 #000,
-        0px -1px 0 #000,
-        0px  1px 0 #000,
-        -1px  0px 0 #000,
-        1px  0px 0 #000,
-        -2px  0px 0 #000,
-        2px  0px 0 #000,
-        0px -2px 0 #000,
-        0px  2px 0 #000;
+        * {
+            font-family: 'DNFBitBitv2', sans-serif;
+            font-weight: normal;
+            color: white;
+            text-shadow:
+                -1px -1px 0 #000,
+                1px -1px 0 #000,
+                -1px  1px 0 #000,
+                1px  1px 0 #000,
+                0px -1px 0 #000,
+                0px  1px 0 #000,
+                -1px  0px 0 #000,
+                1px  0px 0 #000,
+                -2px  0px 0 #000,
+                2px  0px 0 #000,
+                0px -2px 0 #000,
+                0px  2px 0 #000;
 
-    }
+        }
 
-    body {
-      background: #00ff00;
-      text-align: center;
-      margin: 0;
-    }
+        body {
+            background: #00ff00;
+            text-align: center;
+            margin: 0;
+        }
 
-    table {
-      margin: 20px auto;
-      border-collapse: collapse;
-      width: 100%;
-      table-layout: fixed;
-      background: #ffc0cb; /* 표 배경 핑크 */
-    }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: fixed;
+            background: #ffc0cb; /* 표 배경 핑크 */
+        }
 
-    th, td {
-      border: 1px solid #ff69b4;
-      padding: 6px;
-      font-size: clamp(10px, 1.5vw, 16px);
-      text-align: center;
-      word-break: break-word;
-      background-color: #ffc0cb;
-    }
+        th, td {
+            border: 1px solid #ff69b4;
+            padding: 6px;
+            font-size: clamp(10px, 1.5vw, 16px);
+            text-align: center;
+            word-break: break-word;
+            background-color: #ffc0cb;
+        }
 
-    th {
-      white-space: nowrap;
-    }
+        th {
+            white-space: nowrap;
+        }
 
-    input[type="number"] {
-      width: 50px;
-      max-width: 100%;
-    }
+        input[type="number"] {
+            width: 50px;
+            max-width: 100%;
+        }
 
-    input, button {
-      font-size: 16px;
-      padding: 6px;
-      margin: 4px;
-      background: #ff69b4;
-      color: white;
-      border: 2px solid black;
-      border-radius: 6px;
-      box-shadow: 1px 1px 0 #000;
-      transition: all 0.2s ease;
-    }
+        input, button {
+            font-size: 16px;
+            padding: 6px;
+            margin: 4px;
+            background: #ff69b4;
+            color: white;
+            border: 2px solid black;
+            border-radius: 6px;
+            box-shadow: 1px 1px 0 #000;
+            transition: all 0.2s ease;
+        }
 
-    button {
-      padding: 8px 14px;
-      cursor: pointer;
-    }
+        button {
+            padding: 8px 14px;
+            cursor: pointer;
+        }
 
-    button:hover {
-      background: #ff85c1;
-      transform: scale(1.05);
-      box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    }
+        button:hover {
+            background: #ff85c1;
+            transform: scale(1.05);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
 
-    button:active {
-      background: #cc3385;
-      transform: scale(0.97);
-    }
+        button:active {
+            background: #cc3385;
+            transform: scale(0.97);
+        }
 
-    .score-button {
-      font-size: 10px;
-      padding: 2px 4px;
-      background-color: #ff69b4;
-      border: 1px solid black;
-      border-radius: 4px;
-    }
+        .score-button {
+            font-size: 10px;
+            padding: 2px 4px;
+            background-color: #ff69b4;
+            border: 1px solid black;
+            border-radius: 4px;
+        }
 
-    .score-button:hover {
-      background-color: #ff85c1;
-      transform: scale(1.05);
-    }
+        .score-button:hover {
+            background-color: #ff85c1;
+            transform: scale(1.05);
+        }
 
-    .score-button:active {
-      background-color: #cc3385;
-      transform: scale(0.97);
-    }
+        .score-button:active {
+            background-color: #cc3385;
+            transform: scale(0.97);
+        }
 
-    #modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.8);
-    }
+        #modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+        }
 
-    #modalContent {
-      background-color: #ffc0cb;
-      margin: 10% auto;
-      padding: 20px;
-      border: 2px solid #ff69b4;
-      width: 300px;
-    }
+        #modalContent {
+            background-color: #ffc0cb;
+            margin: 10% auto;
+            padding: 20px;
+            border: 2px solid #ff69b4;
+            width: 300px;
+        }
 
-    #closeModal {
-      float: right;
-      cursor: pointer;
-      color: red;
-    }
+        #closeModal {
+            float: right;
+            cursor: pointer;
+            color: red;
+        }
 
-    .active-row {
-      background-color: #ff1493 !important;
-    }
+        .active-row {
+            background-color: #ff1493 !important;
+        }
 
-    #toggleJudgeBtnModal {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 12px;
-      padding: 2px 6px;
-      background: #ff69b4;
-      border: 1px solid black;
-      border-radius: 4px;
-    }
+        #toggleJudgeBtnModal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 12px;
+            padding: 2px 6px;
+            background: #ff69b4;
+            border: 1px solid black;
+            border-radius: 4px;
+        }
 
-    #scoreInputModal {
-      display: none;
-      position: fixed;
-      z-index: 1001;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
-    }
+        #scoreInputModal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+        }
 
-    #scoreInputModalContent {
-      position: relative;
-      background: #ffc0cb;
-      width: 300px;
-      margin: 10% auto;
-      padding: 20px;
-      border: 2px solid #ff69b4;
-    }
+        #scoreInputModalContent {
+            position: relative;
+            background: #ffc0cb;
+            width: 300px;
+            margin: 10% auto;
+            padding: 20px;
+            border: 2px solid #ff69b4;
+        }
 
-    #logContent {
-      text-shadow: none !important;
-    }
+        #logContent {
+            text-shadow: none !important;
+        }
 
-  </style>
+    </style>
 </head>
 <body>
-  <div style="position: absolute; top: 10px; right: 10px;">
-    <button onclick="resetAll()" style="font-size: 12px; padding: 2px 6px; border: 1px solid #888; background: #222; color: white;">초기화</button>
-    <button onclick="resetSelectedCon()" style="font-size: 12px; padding: 2px 6px; border: 1px solid #888; background: #222; color: white;">선택 콘+점수 초기화</button>
-  </div>
-
-  <h1>🎤 무어네 깨알 노래자랑</h1>
-
-  <button onclick="openModal()">참여자 추가</button>
-  <button id="toggleBtn" onclick="toggleSingerVisibility()">참가자 표시</button>
-  <button id="sortToggleBtn" onclick="toggleSortMode()">순위 정렬</button>
-  <button onclick="openLogModal()">로그 보기</button>
-  <button onclick="openManualConModal()">콘 수동 반영</button>
-
-  <div id="modal">
-    <div id="modalContent">
-      <span id="closeModal" onclick="closeModal()">✖</span>
-      <h2>참여자 추가</h2>
-      <input type="text" id="singer" placeholder="참가자명"><br>
-      <input type="text" id="song" placeholder="노래 제목" onkeydown="handleEnter(event)"><br>
-      <button onclick="addEntry()">추가</button>
+    <div style="position: absolute; top: 10px; right: 10px;">
+        <button onclick="resetAll()" style="font-size: 12px; padding: 2px 6px; border: 1px solid #888; background: #222; color: white;">초기화</button>
+        <button onclick="resetSelectedCon()" style="font-size: 12px; padding: 2px 6px; border: 1px solid #888; background: #222; color: white;">선택 콘+점수 초기화</button>
     </div>
-  </div>
 
-  <div style="width: 100%;">
-    <table id="scoreTable">
-      <thead>
-        <tr>
-          <th>노래 중</th>
-          <th>순서</th>
-          <th><span id="singerHeaderText">참가자 (비공개)</span></th>
-          <th>노래 제목</th>
-          <th>점수 입력</th>
-          <th>콘 점수</th>
-          <th>총 점수</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-  </div>
+    <h1>🎤 무어네 깨알 노래자랑</h1>
 
-  <div id="scoreInputModal" style="display:none; position:fixed; z-index:1001; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
-    <div id="scoreInputModalContent">
-      <button id="toggleJudgeBtnModal" onclick="toggleJudgeFieldFromModal()">추가</button>
-      <h2>점수 입력</h2>
-      <div id="dynamicScoreInputs"></div>
-      <button onclick="saveScores()">저장</button>
-      <button onclick="closeScoreModal()">취소</button>
+    <button onclick="openModal()">참여자 추가</button>
+    <button id="toggleBtn" onclick="toggleSingerVisibility()">참가자 표시</button>
+    <button id="sortToggleBtn" onclick="toggleSortMode()">순위 정렬</button>
+    <button onclick="openLogModal()">로그 보기</button>
+    <button onclick="openManualConModal()">콘 수동 반영</button>
+
+    <div id="modal">
+        <div id="modalContent">
+            <span id="closeModal" onclick="closeModal()">✖</span>
+            <h2>참여자 추가</h2>
+            <input type="text" id="singer" placeholder="참가자명"><br>
+            <input type="text" id="song" placeholder="노래 제목" onkeydown="handleEnter(event)"><br>
+            <button onclick="addEntry()">추가</button>
+        </div>
     </div>
-  </div>
 
-  <div id="logModal" style="display:none; position:fixed; z-index:1001; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
-    <div style="background:#fff0f5; color:#333; max-width:500px; width:90%; margin:10% auto; padding:20px; border:2px solid #ff69b4; position:relative;">
-      <span onclick="closeLogModal()" style="position:absolute; top:10px; right:15px; color:red; cursor:pointer;">✖</span>
-      <h2 style="margin-top:0;">콘 점수 로그</h2>
-
-      <!-- 🔽 참가자 필터 -->
-      <select id="logFilterSelect" onchange="filterLogByParticipant()" style="margin-bottom:10px; padding:5px; width:100%;">
-        <option value="">전체 보기</option>
-      </select>
-
-      <!-- 🔽 로그 출력 -->
-      <div id="logContent" style="height:300px; overflow-y:auto; font-size:14px; white-space:pre-line; background:#fff; border:1px solid #ccc; padding:10px; color:#000;"></div>
+    <div style="width: 100%;">
+        <table id="scoreTable">
+            <thead>
+                <tr>
+                    <th>노래 중</th>
+                    <th>순서</th>
+                    <th><span id="singerHeaderText">참가자 (비공개)</span></th>
+                    <th>노래 제목</th>
+                    <th>점수 입력</th>
+                    <th>콘 점수</th>
+                    <th>총 점수</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
     </div>
-  </div>
 
-  <div id="manualConModal" style="display:none; position:fixed; z-index:1001; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
-  <div style="background:#fff0f5; color:#000; width:300px; margin:10% auto; padding:20px; border:2px solid #ff69b4; position:relative;">
-    <span onclick="closeManualConModal()" style="position:absolute; top:10px; right:15px; color:red; cursor:pointer;">✖</span>
-    <h2>콘 수동 반영</h2>
-    <label>닉네임: <input type="text" id="manualNickname" /></label><br><br>
-    <label>참가자 번호: <input type="number" id="manualTarget" min="1" /></label><br><br>
-    <label>콘 점수: <input type="number" id="manualAmount" /></label><br><br>
-    <button onclick="applyManualCon()">반영</button>
-  </div>
-</div>
+    <div id="scoreInputModal" style="display:none; position:fixed; z-index:1001; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
+        <div id="scoreInputModalContent">
+            <button id="toggleJudgeBtnModal" onclick="toggleJudgeFieldFromModal()">추가</button>
+            <h2>점수 입력</h2>
+            <div id="dynamicScoreInputs"></div>
+            <button onclick="saveScores()">저장</button>
+            <button onclick="closeScoreModal()">취소</button>
+        </div>
+    </div>
 
-  <script>
-    let participants = [];
-    let originalOrder = [];
-    let judgeCount = 3;
-    let showSingers = false;
-    let currentScoreIndex = null;
-    let activeIndex = null;
-    let lastMessageHash = null;
-    let pendingContributions = {};
-    let isSortedByScore = false;
-    let conLogHistory = [];
-    let contributionLogs = [];
-    let assignedHistory = new Set();
+    <div id="logModal" style="display:none; position:fixed; z-index:1001; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
+        <div style="background:#fff0f5; color:#333; max-width:500px; width:90%; margin:10% auto; padding:20px; border:2px solid #ff69b4; position:relative;">
+            <span onclick="closeLogModal()" style="position:absolute; top:10px; right:15px; color:red; cursor:pointer;">✖</span>
+            <h2 style="margin-top:0;">콘 점수 로그</h2>
 
-    window.addEventListener("message", (event) => {
-      const { type, con, amount, 참가자, raw } = event.data;
+            <select id="logFilterSelect" onchange="filterLogByParticipant()" style="margin-bottom:10px; padding:5px; width:100%;">
+                <option value="">전체 보기</option>
+            </select>
 
-      if (type === "coin") {
-        const value = parseInt(amount ?? con);
-        const text = raw || "";
-        if (!value || isNaN(value)) return;
+            <div id="logContent" style="height:300px; overflow-y:auto; font-size:14px; white-space:pre-line; background:#fff; border:1px solid #ccc; padding:10px; color:#000;"></div>
+        </div>
+    </div>
 
-        const msgHash = JSON.stringify(event.data);
-        if (msgHash === lastMessageHash) return;
-        lastMessageHash = msgHash;
+    <div id="manualConModal" style="display:none; position:fixed; z-index:1001; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8);">
+        <div style="background:#fff0f5; color:#000; width:300px; margin:10% auto; padding:20px; border:2px solid #ff69b4; position:relative;">
+            <span onclick="closeManualConModal()" style="position:absolute; top:10px; right:15px; color:red; cursor:pointer;">✖</span>
+            <h2>콘 수동 반영</h2>
+            <label>닉네임: <input type="text" id="manualNickname" /></label><br><br>
+            <label>참가자 번호: <input type="number" id="manualTarget" min="1" /></label><br><br>
+            <label>콘 점수: <input type="number" id="manualAmount" /></label><br><br>
+            <button onclick="applyManualCon()">반영</button>
+        </div>
+    </div>
 
-        const nickMatch = text.match(/(.+?)\(.+?\)님이/);
-        const nickname = nickMatch ? nickMatch[1].trim() : null;
+    <script>
+        let participants = [];
+        let originalOrder = [];
+        let judgeCount = 3;
+        let showSingers = false;
+        let currentScoreIndex = null;
+        let activeIndex = null;
+        let lastMessageHash = null;
+        let pendingContributions = {};
+        let isSortedByScore = false;
+        let conLogHistory = [];
+        let contributionLogs = [];
+        let assignedHistory = new Set();
+        let lastCoinSender = null;
 
-        if (nickname) {
-          pendingContributions[nickname] = (pendingContributions[nickname] || 0) + value;
-          console.log(`💰 보류된 점수 저장: ${nickname} → ${value}점`);
-        }
+        window.addEventListener("message", (event) => {
+            const { type, con, amount, 참가자, nickname, raw } = event.data;
 
-        saveData();
-        renderTable();
-      }
+            // 중복 메시지 방지
+            const msgHash = JSON.stringify(event.data);
+            if (msgHash === lastMessageHash) return;
+            lastMessageHash = msgHash;
 
-      if (type === "assign") {
-        const nickname = event.data.nickname;
-        const targetNum = parseInt(event.data.참가자);
-        const idx = targetNum - 1;
-        const value = pendingContributions[nickname];
-        const blindName = participants[idx]?.blindName || `참가자${idx + 1}`;
+            if (type === "coin") {
+                const value = parseInt(amount ?? con);
+                const text = raw || "";
+                if (!value || isNaN(value)) return;
 
-        if (!participants[idx]) return;
-        if (!value || isNaN(value)) return;
+                const nickMatch = text.match(/(.+?)\(.+?\)님이/);
+                const senderNickname = nickMatch ? nickMatch[1].trim() : null;
 
-        const isDuplicate = conLogHistory.some(log =>
-          log.nickname === nickname && log.participant === blindName && log.value === value
-        );
-        if (isDuplicate) return;
+                if (senderNickname) {
+                    const cleanedNickname = senderNickname.split('(')[0].trim();
+                    pendingContributions[cleanedNickname] = (pendingContributions[cleanedNickname] || 0) + value;
+                    console.log(`💰 보류된 점수 저장: ${cleanedNickname} → ${value}점`);
+                }
+            }
 
-        participants[idx].score += value;
-        participants[idx].conTotal = (participants[idx].conTotal || 0) + value;
+            if (type === "assign") {
+                const targetNum = parseInt(참가자);
+                const senderNickname = nickname;
+                
+                // 보류된 점수가 있는지 확인
+                const value = pendingContributions[senderNickname];
+                
+                if (!value || isNaN(targetNum)) return;
+                
+                const idx = targetNum - 1;
+                if (!participants[idx]) {
+                    console.log(`⚠️ 참가자 번호 ${targetNum}가 존재하지 않습니다.`);
+                    return;
+                }
+                
+                const blindName = participants[idx].blindName || `참가자${idx + 1}`;
+                
+                // 중복 로그 방지
+                const logKey = `${senderNickname}|${blindName}|${value}`;
+                if (assignedHistory.has(logKey)) {
+                    console.log(`❌ 중복 할당 시도 방지: ${logKey}`);
+                    return;
+                }
+                assignedHistory.add(logKey);
 
-        conLogHistory.push({
-          nickname,
-          participant: blindName,
-          value,
-          time: new Date().toLocaleString()
+                participants[idx].score += value;
+                participants[idx].conTotal = (participants[idx].conTotal || 0) + value;
+
+                conLogHistory.push({
+                    nickname: senderNickname,
+                    participant: blindName,
+                    value,
+                    time: new Date().toLocaleString(),
+                    logKey
+                });
+
+                // 점수 반영 후 보류된 점수 삭제
+                delete pendingContributions[senderNickname];
+                
+                triggerConfetti();
+                updateLogFilterOptions();
+                saveData();
+                renderTable();
+                console.log(`✅ ${senderNickname} → ${blindName}에게 ${value}점 반영됨`);
+            }
         });
 
-        delete pendingContributions[nickname];
+        function triggerConfetti() {
+            if (window.confetti) {
+                window.confetti({
+                    particleCount: 50,
+                    spread: 90,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
 
-        triggerConfetti();
-        updateLogFilterOptions();
-        saveData();
-        renderTable();
+        window.openModal = function () {
+            document.getElementById('modal').style.display = 'block';
+            setTimeout(() => document.getElementById('singer').focus(), 100);
+        }
 
-        console.log(`✅ ${nickname} → ${blindName}에게 ${value}점 반영됨`);
-      }
-    });
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
 
-    function triggerConfetti() {
-      if (window.confetti) {
-        window.confetti({
-          particleCount: 50,
-          spread: 90,
-          origin: { y: 0.6 }
+        function handleEnter(e) {
+            if (e.key === "Enter") addEntry();
+        }
+
+        function addEntry() {
+            const singer = document.getElementById('singer').value.trim();
+            const song = document.getElementById('song').value.trim();
+            if (!singer || !song) return alert("참가자명과 노래 제목은 필수입니다.");
+            const blindName = `참가자${participants.length + 1}`;
+            const newEntry = { singer, song, score: 0, conTotal: 0, blindName };
+            for (let i = 1; i <= judgeCount; i++) newEntry[`judge${i}`] = 0;
+            participants.push(newEntry);
+            originalOrder.push(newEntry);
+            renderTable(); saveData();
+            document.getElementById('singer').value = '';
+            document.getElementById('song').value = '';
+            document.getElementById('singer').focus();
+        }
+
+        window.toggleSingerVisibility = function () {
+            showSingers = !showSingers;
+            document.getElementById('toggleBtn').textContent = showSingers ? '참가자 감춤' : '참가자 표시';
+            renderTable();
+        }
+
+        window.toggleSortMode = function () {
+            const btn = document.getElementById('sortToggleBtn');
+            if (!isSortedByScore) {
+                participants.sort((a, b) => (b.scoreTotal || 0) - (a.scoreTotal || 0));
+                isSortedByScore = true;
+                btn.textContent = '순서 정렬';
+            } else {
+                participants = [...originalOrder];
+                isSortedByScore = false;
+                btn.textContent = '순위 정렬';
+            }
+            document.querySelector("#scoreTable thead th:nth-child(2)").textContent = isSortedByScore ? "순위" : "순서";
+            renderTable();
+        }
+
+        window.openLogModal = function () {
+            updateLogFilterOptions();
+            document.getElementById("logFilterSelect").value = "";
+            filterLogByParticipant();
+            document.getElementById("logModal").style.display = "block";
+        }
+
+        window.openManualConModal = function () {
+            document.getElementById('manualConModal').style.display = 'block';
+        }
+
+        function closeManualConModal() {
+            document.getElementById('manualConModal').style.display = 'none';
+        }
+
+        function closeLogModal() {
+            document.getElementById("logModal").style.display = "none";
+        }
+
+        function filterLogByParticipant() {
+            const selected = document.getElementById("logFilterSelect").value;
+            const logBox = document.getElementById("logContent");
+
+            const filtered = conLogHistory.filter(log => {
+                return selected === "" || log.participant === selected;
+            });
+
+            if (filtered.length === 0) {
+                logBox.textContent = "해당 참가자에게 할당된 콘 로그가 없습니다.";
+            } else {
+                logBox.textContent = filtered
+                    .map(log => `🍿 [${log.time}] ${log.nickname} → ${log.participant} (${log.value}점)`)
+                    .join("\n");
+            }
+        }
+
+        function updateLogFilterOptions() {
+            const select = document.getElementById("logFilterSelect");
+            const currentValue = select.value;
+
+            const uniqueNames = [...new Set(conLogHistory.map(log => log.participant))];
+
+            select.innerHTML = `<option value="">전체 보기</option>`;
+            uniqueNames.forEach(name => {
+                const option = document.createElement("option");
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+
+            select.value = currentValue;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            participants.forEach((p, i) => {
+                const name = showSingers ? p.singer : p.blindName;
+                const judgeScores = Array.from({ length: judgeCount }, (_, j) => p[`judge${j + 1}`] || 0);
+                const totalScore = judgeScores.reduce((a, b) => a + b, p.score);
+                p.scoreTotal = totalScore;
+                const tr = document.createElement('tr');
+                tr.className = (i === activeIndex) ? 'active-row' : '';
+                tr.innerHTML = `
+                    <td><input type="checkbox" onchange="setActive(${i})" ${i === activeIndex ? 'checked' : ''}></td>
+                    <td>${i + 1}</td>
+                    <td>${name}</td>
+                    <td>${p.song}</td>
+                    <td><button class="score-button" onclick="openScoreModal(${i})">점수</button></td>
+                    <td>${p.conTotal || 0}</td>
+                    <td>${totalScore}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            document.getElementById('singerHeaderText').textContent = showSingers ? '참가자 (공개)' : '참가자 (비공개)';
+        }
+
+        function setActive(index) {
+            activeIndex = (activeIndex === index) ? null : index;
+            renderTable();
+        }
+
+        function openScoreModal(index) {
+            currentScoreIndex = index;
+            const p = participants[index];
+            const container = document.getElementById('dynamicScoreInputs');
+            container.innerHTML = '';
+            for (let i = 0; i < judgeCount; i++) {
+                const val = p[`judge${i + 1}`] || 0;
+                container.innerHTML += `<label>점수${i + 1}: <input type="number" id="scoreInput${i}" value="${val}"></label><br><br>`;
+            }
+            document.getElementById('toggleJudgeBtnModal').textContent = (judgeCount === 3) ? '삭제' : '추가';
+            document.getElementById('scoreInputModal').style.display = 'block';
+        }
+
+        function closeScoreModal() {
+            document.getElementById('scoreInputModal').style.display = 'none';
+        }
+
+        function saveScores() {
+            if (currentScoreIndex !== null) {
+                for (let i = 0; i < judgeCount; i++) {
+                    const val = parseInt(document.getElementById(`scoreInput${i}`).value) || 0;
+                    participants[currentScoreIndex][`judge${i + 1}`] = val;
+                }
+                closeScoreModal();
+                renderTable();
+                saveData();
+            }
+        }
+
+        function toggleJudgeFieldFromModal() {
+            judgeCount = judgeCount === 3 ? 2 : 3;
+            document.getElementById('toggleJudgeBtnModal').textContent = judgeCount === 3 ? '삭제' : '추가';
+            openScoreModal(currentScoreIndex);
+        }
+
+        function resetAll() {
+            if (confirm("정말 모든 데이터를 초기화하시겠습니까?")) {
+                localStorage.removeItem('participants');
+                localStorage.removeItem('originalOrder');
+                participants = [];
+                originalOrder = [];
+                conLogHistory = [];
+                assignedHistory = new Set();
+                renderTable();
+            }
+        }
+
+        function resetSelectedCon() {
+            const checkboxes = document.querySelectorAll('#tableBody input[type="checkbox"]');
+            let changed = false;
+            checkboxes.forEach((cb, i) => {
+                if (cb.checked) {
+                    participants[i].conTotal = 0;
+                    participants[i].score = 0;
+                    for (let j = 1; j <= judgeCount; j++) {
+                        participants[i][`judge${j}`] = 0;
+                    }
+                    participants[i].scoreTotal = 0;
+                    const ori = originalOrder[i];
+                    ori.conTotal = 0;
+                    ori.score = 0;
+                    for (let j = 1; j <= judgeCount; j++) {
+                        ori[`judge${j}`] = 0;
+                    }
+                    ori.scoreTotal = 0;
+                    changed = true;
+                }
+            });
+            if (changed) {
+                // 선택된 참가자의 로그도 초기화
+                const selectedBlindNames = Array.from(checkboxes)
+                    .filter(cb => cb.checked)
+                    .map((cb, i) => participants[i].blindName);
+                conLogHistory = conLogHistory.filter(log => !selectedBlindNames.includes(log.participant));
+
+                saveData();
+                renderTable();
+            } else {
+                alert("선택된 참가자가 없습니다.");
+            }
+        }
+
+        function applyManualCon() {
+            const nickname = document.getElementById('manualNickname').value.trim();
+            const target = parseInt(document.getElementById('manualTarget').value);
+            const amount = parseInt(document.getElementById('manualAmount').value);
+
+            if (!nickname || isNaN(target) || isNaN(amount)) {
+                alert("모든 값을 입력해주세요.");
+                return;
+            }
+
+            const idx = target - 1;
+            if (!participants[idx]) {
+                alert("해당 참가자 번호가 존재하지 않습니다.");
+                return;
+            }
+
+            participants[idx].score += amount;
+            participants[idx].conTotal = (participants[idx].conTotal || 0) + amount;
+
+            const blindName = participants[idx].blindName || `참가자${target}`;
+            conLogHistory.push({
+                nickname,
+                participant: blindName,
+                value: amount,
+                time: new Date().toLocaleString()
+            });
+
+            console.log(`🛠️ 수동 반영 완료: ${nickname} → ${blindName} (${amount}점)`);
+
+            saveData();
+            renderTable();
+            updateLogFilterOptions();
+            closeManualConModal();
+        }
+        
+        // 이 부분의 로직도 수정합니다.
+        function purgeDuplicateConScores() {
+            // 중복 점수 처리 로직을 조금 더 명확하게 수정
+            if (!Array.isArray(conLogHistory)) return;
+
+            const seenLogKeys = new Set();
+            const validLogs = [];
+
+            for (const log of conLogHistory) {
+                const key = `${log.nickname}|${log.participant}|${log.value}`;
+                
+                // 로그 키가 이미 처리된 적 없다면
+                if (!seenLogKeys.has(key)) {
+                    seenLogKeys.add(key);
+                    validLogs.push(log);
+                } else {
+                    console.log(`❌ 중복 콘 점수 로그 제거됨: ${key}`);
+                }
+            }
+
+            // 기존 점수를 초기화하고 유효한 로그를 기반으로 재계산
+            participants.forEach(p => {
+                p.score = 0;
+                p.conTotal = 0;
+            });
+            
+            validLogs.forEach(log => {
+                const idx = participants.findIndex(p => p.blindName === log.participant);
+                if (idx !== -1) {
+                    participants[idx].score += log.value;
+                    participants[idx].conTotal += log.value;
+                }
+            });
+
+            conLogHistory = validLogs;
+            saveData();
+            renderTable();
+            console.log("✅ 중복 콘 점수 정리 완료 및 재계산 완료");
+        }
+
+
+        function saveData() {
+            localStorage.setItem('participants', JSON.stringify(participants));
+            localStorage.setItem('originalOrder', JSON.stringify(originalOrder));
+            localStorage.setItem('conLogHistory', JSON.stringify(conLogHistory)); // 로그 저장 추가
+            localStorage.setItem('assignedHistory', JSON.stringify(Array.from(assignedHistory))); // 할당 기록 저장 추가
+        }
+
+        function loadSavedData() {
+            const saved = localStorage.getItem('participants');
+            const original = localStorage.getItem('originalOrder');
+            const logs = localStorage.getItem('conLogHistory');
+            const assigned = localStorage.getItem('assignedHistory');
+            
+            if (saved) {
+                try {
+                    participants = JSON.parse(saved);
+                    originalOrder = original ? JSON.parse(original) : [...participants];
+                    conLogHistory = logs ? JSON.parse(logs) : [];
+                    assignedHistory = assigned ? new Set(JSON.parse(assigned)) : new Set();
+                    
+                    participants.forEach((p, i) => {
+                        if (!p.blindName) p.blindName = `참가자${i + 1}`;
+                    });
+                    originalOrder.forEach((p, i) => {
+                        if (!p.blindName) p.blindName = `참가자${i + 1}`;
+                    });
+                    renderTable();
+                } catch (e) {
+                    participants = [];
+                    originalOrder = [];
+                    conLogHistory = [];
+                    assignedHistory = new Set();
+                    console.error("저장된 데이터를 불러오는 중 오류 발생", e);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSavedData();
+            purgeDuplicateConScores();
+            // 페이지 로드 시 중복 제거 로직은 필요한 경우에만 수동으로 실행하도록 주석 처리
         });
-      }
-    }
-
-    window.openModal = function () {
-      document.getElementById('modal').style.display = 'block';
-      setTimeout(() => document.getElementById('singer').focus(), 100);
-    }
-
-    function closeModal() {
-      document.getElementById('modal').style.display = 'none';
-    }
-
-    function handleEnter(e) {
-      if (e.key === "Enter") addEntry();
-    }
-
-    function addEntry() {
-      const singer = document.getElementById('singer').value.trim();
-      const song = document.getElementById('song').value.trim();
-      if (!singer || !song) return alert("참가자명과 노래 제목은 필수입니다.");
-      const blindName = `참가자${participants.length + 1}`;
-      const newEntry = { singer, song, score: 0, conTotal: 0, blindName };
-      for (let i = 1; i <= judgeCount; i++) newEntry[`judge${i}`] = 0;
-      participants.push(newEntry);
-      originalOrder.push(newEntry);
-      renderTable(); saveData();
-      document.getElementById('singer').value = '';
-      document.getElementById('song').value = '';
-      document.getElementById('singer').focus();
-    }
-
-    window.toggleSingerVisibility = function () {
-      showSingers = !showSingers;
-      document.getElementById('toggleBtn').textContent = showSingers ? '참가자 감춤' : '참가자 표시';
-      renderTable();
-    }
-
-    window.toggleSortMode = function () {
-      const btn = document.getElementById('sortToggleBtn');
-      if (!isSortedByScore) {
-        participants.sort((a, b) => (b.scoreTotal || 0) - (a.scoreTotal || 0));
-        isSortedByScore = true;
-        btn.textContent = '순서 정렬';
-      } else {
-        participants = [...originalOrder];
-        isSortedByScore = false;
-        btn.textContent = '순위 정렬';
-      }
-      document.querySelector("#scoreTable thead th:nth-child(2)").textContent = isSortedByScore ? "순위" : "순서";
-      renderTable();
-    }
-
-    window.openLogModal = function () {
-      updateLogFilterOptions();
-      document.getElementById("logFilterSelect").value = "";
-      filterLogByParticipant();
-      document.getElementById("logModal").style.display = "block";
-    }
-
-    window.openManualConModal = function () {
-      document.getElementById('manualConModal').style.display = 'block';
-    }
-
-    function closeManualConModal() {
-      document.getElementById('manualConModal').style.display = 'none';
-    }
-
-    function closeLogModal() {
-      document.getElementById("logModal").style.display = "none";
-    }
-
-    function filterLogByParticipant() {
-      const selected = document.getElementById("logFilterSelect").value;
-      const logBox = document.getElementById("logContent");
-
-      const filtered = conLogHistory.filter(log => {
-        return selected === "" || log.blindName === selected;
-      });
-
-      if (filtered.length === 0) {
-        logBox.textContent = "해당 참가자에게 할당된 콘 로그가 없습니다.";
-      } else {
-        logBox.textContent = filtered
-          .map(log => `🍿 [${log.time}] ${log.nickname} → ${log.blindName} (${log.value}점)`)
-          .join("\n");
-      }
-    }
-
-    function updateLogFilterOptions() {
-      const select = document.getElementById("logFilterSelect");
-      const currentValue = select.value;
-
-      const uniqueNames = [...new Set(conLogHistory.map(log => log.blindName))];
-
-      select.innerHTML = `<option value="">전체 보기</option>`;
-      uniqueNames.forEach(name => {
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        select.appendChild(option);
-      });
-
-      select.value = currentValue;
-    }
-
-    function renderTable() {
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = '';
-      participants.forEach((p, i) => {
-        const name = showSingers ? p.singer : p.blindName;
-        const judgeScores = Array.from({ length: judgeCount }, (_, j) => p[`judge${j + 1}`] || 0);
-        const totalScore = judgeScores.reduce((a, b) => a + b, p.score);
-        p.scoreTotal = totalScore;
-        const tr = document.createElement('tr');
-        tr.className = (i === activeIndex) ? 'active-row' : '';
-        tr.innerHTML = `
-          <td><input type="checkbox" onchange="setActive(${i})" ${i === activeIndex ? 'checked' : ''}></td>
-          <td>${i + 1}</td>
-          <td>${name}</td>
-          <td>${p.song}</td>
-          <td><button class="score-button" onclick="openScoreModal(${i})">점수</button></td>
-          <td>${p.conTotal || 0}</td>
-          <td>${totalScore}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-      document.getElementById('singerHeaderText').textContent = showSingers ? '참가자 (공개)' : '참가자 (비공개)';
-    }
-
-    function setActive(index) {
-      activeIndex = (activeIndex === index) ? null : index;
-      renderTable();
-    }
-
-    function openScoreModal(index) {
-      currentScoreIndex = index;
-      const p = participants[index];
-      const container = document.getElementById('dynamicScoreInputs');
-      container.innerHTML = '';
-      for (let i = 0; i < judgeCount; i++) {
-        const val = p[`judge${i + 1}`] || 0;
-        container.innerHTML += `<label>점수${i + 1}: <input type="number" id="scoreInput${i}" value="${val}"></label><br><br>`;
-      }
-      document.getElementById('toggleJudgeBtnModal').textContent = (judgeCount === 3) ? '삭제' : '추가';
-      document.getElementById('scoreInputModal').style.display = 'block';
-    }
-
-    function closeScoreModal() {
-      document.getElementById('scoreInputModal').style.display = 'none';
-    }
-
-    function saveScores() {
-      if (currentScoreIndex !== null) {
-        for (let i = 0; i < judgeCount; i++) {
-          const val = parseInt(document.getElementById(`scoreInput${i}`).value) || 0;
-          participants[currentScoreIndex][`judge${i + 1}`] = val;
-        }
-        closeScoreModal();
-        renderTable();
-        saveData();
-      }
-    }
-
-    function toggleJudgeFieldFromModal() {
-      judgeCount = judgeCount === 3 ? 2 : 3;
-      document.getElementById('toggleJudgeBtnModal').textContent = judgeCount === 3 ? '삭제' : '추가';
-      openScoreModal(currentScoreIndex);
-    }
-
-    function resetAll() {
-      if (confirm("정말 모든 데이터를 초기화하시겠습니까?")) {
-        localStorage.removeItem('participants');
-        localStorage.removeItem('originalOrder');
-        participants = [];
-        originalOrder = [];
-        renderTable();
-      }
-    }
-
-    function resetSelectedCon() {
-      const checkboxes = document.querySelectorAll('#tableBody input[type="checkbox"]');
-      let changed = false;
-      checkboxes.forEach((cb, i) => {
-        if (cb.checked) {
-          participants[i].conTotal = 0;
-          participants[i].score = 0;
-          for (let j = 1; j <= judgeCount; j++) {
-            participants[i][`judge${j}`] = 0;
-          }
-          participants[i].scoreTotal = 0;
-          const ori = originalOrder[i];
-          ori.conTotal = 0;
-          ori.score = 0;
-          for (let j = 1; j <= judgeCount; j++) {
-            ori[`judge${j}`] = 0;
-          }
-          ori.scoreTotal = 0;
-          changed = true;
-        }
-      });
-      if (changed) {
-        saveData();
-        renderTable();
-      } else {
-        alert("선택된 참가자가 없습니다.");
-      }
-    }
-
-    function applyManualCon() {
-      const nickname = document.getElementById('manualNickname').value.trim();
-      const target = parseInt(document.getElementById('manualTarget').value);
-      const amount = parseInt(document.getElementById('manualAmount').value);
-
-      if (!nickname || isNaN(target) || isNaN(amount)) {
-        alert("모든 값을 입력해주세요.");
-        return;
-      }
-
-      const idx = target - 1;
-      if (!participants[idx]) {
-        alert("해당 참가자 번호가 존재하지 않습니다.");
-        return;
-      }
-
-      participants[idx].score += amount;
-      participants[idx].conTotal = (participants[idx].conTotal || 0) + amount;
-
-      const blindName = participants[idx].blindName || `참가자${target}`;
-      contributionLogs.push({
-        nickname,
-        participant: blindName,
-        amount,
-        time: new Date().toLocaleString()
-      });
-
-      console.log(`🛠️ 수동 반영 완료: ${nickname} → ${blindName} (${amount}점)`);
-
-      saveData();
-      renderTable();
-      updateLogFilterOptions();
-      closeManualConModal();
-    }
-
-    function purgeDuplicateConScores() {
-      if (!Array.isArray(conLogHistory)) return;
-      if (!Array.isArray(participants)) return;
-
-      const seenKeys = new Set();
-      const validLogs = [];
-
-      for (const log of conLogHistory) {
-        const key = `${log.nickname}|${log.participant}|${log.value}`;
-        const idx = participants.findIndex(p => p.blindName === log.participant);
-
-        if (idx === -1) continue;
-
-        if (!seenKeys.has(key)) {
-          seenKeys.add(key);
-          validLogs.push(log);
-        } else {
-          participants[idx].score -= log.value;
-          participants[idx].conTotal -= log.value;
-          if (participants[idx].score < 0) participants[idx].score = 0;
-          if (participants[idx].conTotal < 0) participants[idx].conTotal = 0;
-          console.log(`❌ 중복 점수 차감됨: ${key}`);
-        }
-      }
-
-      conLogHistory = validLogs;
-      saveData();
-      renderTable();
-      console.log("✅ 중복 콘 점수 정리 완료");
-    }
-
-    function saveData() {
-      localStorage.setItem('participants', JSON.stringify(participants));
-      localStorage.setItem('originalOrder', JSON.stringify(originalOrder));
-    }
-
-    function loadSavedData() {
-      const saved = localStorage.getItem('participants');
-      const original = localStorage.getItem('originalOrder');
-      if (saved) {
-        try {
-          participants = JSON.parse(saved);
-          originalOrder = original ? JSON.parse(original) : [...participants];
-          participants.forEach((p, i) => {
-            if (!p.blindName) p.blindName = `참가자${i + 1}`;
-          });
-          originalOrder.forEach((p, i) => {
-            if (!p.blindName) p.blindName = `참가자${i + 1}`;
-          });
-          renderTable();
-        } catch (e) {
-          participants = [];
-          originalOrder = [];
-        }
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadSavedData();
-      purgeDuplicateConScores();
-    });
     </script>
 
 </body>
