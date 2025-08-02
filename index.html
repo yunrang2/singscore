@@ -527,6 +527,7 @@ let assignedHistory = new Set(); // 중복 방지용
 
     document.addEventListener('DOMContentLoaded', () => {
       loadSavedData();
+      removeDuplicateScores();  // ← 여기에 추가
     });
 
     function logConAssignment(nickname, blindName, value) {
@@ -584,9 +585,39 @@ let assignedHistory = new Set(); // 중복 방지용
           .join("\n");
       }
     }
-
+    function removeDuplicateScores() {
+      if (!window.scoreLogs || !Array.isArray(scoreLogs)) return;
+    
+      const logMap = {};
+      const duplicateScoreMap = {};
+    
+      // 1. 중복 로그 탐지
+      for (const log of scoreLogs) {
+        const key = `${log.nickname}#${log.참가자}#${log.amount}`;
+        if (logMap[key]) {
+          duplicateScoreMap[log.참가자] = (duplicateScoreMap[log.참가자] || 0) + log.amount;
+        } else {
+          logMap[key] = true;
+        }
+      }
+    
+      // 2. 참가자 점수에서 중복 점수 차감
+      participants.forEach((p, i) => {
+        const blindName = `참가자${i + 1}`;
+        const deduct = duplicateScoreMap[blindName];
+        if (deduct) {
+          p.score = Math.max((p.score || 0) - deduct, 0);
+          p.conTotal = Math.max((p.conTotal || 0) - deduct, 0);
+          p.scoreTotal = Math.max((p.scoreTotal || 0) - deduct, 0);
+        }
+      });
+    
+      saveData();
+      renderTable();
+    }
   </script>
 </body>
 </html>
+
 
 
