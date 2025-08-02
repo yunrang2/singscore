@@ -253,7 +253,7 @@
         </div>
     </div>
 
-    <script>
+     <script>
         let participants = [];
         let originalOrder = [];
         let judgeCount = 3;
@@ -268,7 +268,7 @@
         let lastCoinSender = null;
     
         function showVersion() {
-            const version = 'v.2025.08.02.11';
+            const version = 'v.2025.08.02.12';
             const versionDiv = document.createElement('div');
             versionDiv.textContent = version;
             versionDiv.style.position = 'fixed';
@@ -283,25 +283,27 @@
         }
     
         window.addEventListener("message", (event) => {
-            const { type, con, amount, 참가자, nickname, raw } = event.data;
-            // console.log("💌 메시지 수신됨:", event.data); // 디버깅용: 메시지 수신 시점에만 로그를 남김
-    
+            const { type, con, amount, nickname, raw } = event.data;
+            
+            // 메시지가 같은지 확인하는 로직을 더 강력하게 수정
             const msgHash = JSON.stringify(event.data);
             if (msgHash === lastMessageHash) return;
             lastMessageHash = msgHash;
             
-            // 메시지 수신 로그는 중복 방지 로직 통과 후에 남깁니다.
             console.log("💌 메시지 수신 및 처리 시작:", event.data);
     
             if (type === "coin") {
                 const value = parseInt(amount ?? con);
-                if (!value || isNaN(value) || !nickname) return;
+                if (!value || isNaN(value) || !nickname) {
+                    console.log("⚠️ 팝콘 메시지 처리 실패: 점수 또는 닉네임 정보가 없습니다.");
+                    return;
+                }
     
                 // 수정된 로직: 현재 노래 중인 참가자(체크된 참가자)가 있으면 즉시 점수 반영
                 if (activeIndex !== null && participants[activeIndex]) {
                     const targetParticipant = participants[activeIndex];
                     const blindName = targetParticipant.blindName || `참가자${activeIndex + 1}`;
-                    const logKey = `${nickname}|${blindName}|${value}|${Date.now()}`; // 고유 키에 타임스탬프 추가
+                    const logKey = `${nickname}|${blindName}|${value}|${Date.now()}`;
                     
                     if (assignedHistory.has(logKey)) {
                         console.log(`❌ 중복 할당 시도 방지 (자동 반영): ${logKey}`);
@@ -334,7 +336,7 @@
             }
     
             if (type === "assign") {
-                const targetNum = parseInt(참가자);
+                const targetNum = parseInt(event.data.참가자);
                 const senderNickname = nickname;
                 
                 const value = pendingContributions[senderNickname];
@@ -753,6 +755,7 @@
     </script>
 </body>
 </html>
+
 
 
 
