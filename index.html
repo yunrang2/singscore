@@ -247,75 +247,100 @@
 
 
   <script>
-    let participants = [];
-    let originalOrder = [];
-    let judgeCount = 3;
-    let showSingers = false;
-    let currentScoreIndex = null;
-    let activeIndex = null;
-    let lastMessageHash = null;
-    let pendingContributions = {};
-    let isSortedByScore = false;
-    let conLogHistory = []; // [{ nickname, blindName, value, time }]
+  let participants = [];
+  let originalOrder = [];
+  let judgeCount = 3;
+  let showSingers = false;
+  let currentScoreIndex = null;
+  let activeIndex = null;
+  let lastMessageHash = null;
+  let pendingContributions = {};
+  let isSortedByScore = false;
+  let contributionLogs = []; // 로그 배열
+  let assignedHistory = new Set(); // 중복 방지용
 
 
-    window.addEventListener("message", (event) => {
-      const { type, con, amount, 참가자, raw } = event.data;
+let participants = [];
+let originalOrder = [];
+let judgeCount = 3;
+let showSingers = false;
+let currentScoreIndex = null;
+let activeIndex = null;
+let lastMessageHash = null;
+let pendingContributions = {};
+let isSortedByScore = false;
+let contributionLogs = []; // 로그 배열
+let assignedHistory = new Set(); // 중복 방지용
 
-      // 공통 변수
+  window.addEventListener("message", (event) => {
+    const { type, con, amount, 참가자, raw } = event.data;
+  
+    if (type === "coin") {
       const value = parseInt(amount ?? con);
       const text = raw || "";
       if (!value || isNaN(value)) return;
-
+  
       const msgHash = JSON.stringify(event.data);
       if (msgHash === lastMessageHash) return;
       lastMessageHash = msgHash;
-
-      if (type === "coin") {
-        const nickMatch = text.match(/(.+?)\(.+?\)님이/);
-        const nickname = nickMatch ? nickMatch[1].trim() : null;
-
-        if (activeIndex !== null && participants[activeIndex]) {
-          participants[activeIndex].score += value;
-          participants[activeIndex].conTotal = (participants[activeIndex].conTotal || 0) + value;
-          launchConfetti();  // 🎉 콘 점수 증가 시 폭죽 효과
-        } else if (nickname) {
-          pendingContributions[nickname] = (pendingContributions[nickname] || 0) + value;
-        }
-
+  
+      const nickMatch = text.match(/(.+?)\(.+?\)님이/);
+      const nickname = nickMatch ? nickMatch[1].trim() : null;
+  
+      if (nickname) {
+        pendingContributions[nickname] = (pendingContributions[nickname] || 0) + value;
+        console.log(`💰 보류된 점수 저장: ${nickname} → ${value}점`);
+      }
+  
+      saveData();
+      renderTable();
+    }
+  
+    if (type === "assign") {
+      const nickname = event.data.nickname;
+      const targetNum = parseInt(event.data.참가자);
+      const idx = targetNum - 1;
+  
+      const value = pendingContributions[nickname];
+      const blindName = participants[idx]?.blindName || `참가자${idx + 1}`;
+      const key = `${nickname}#${idx}`;
+  
+      if (value && participants[idx] && !assignedHistory.has(key)) {
+        participants[idx].score += value;
+        participants[idx].conTotal = (participants[idx].conTotal || 0) + value;
+  
+        assignedHistory.add(key);
+        delete pendingContributions[nickname];
+  
+        // 로그 추가
+        contributionLogs.push({
+          nickname,
+          participant: blindName,
+          amount: value,
+          time: new Date().toLocaleString()
+        });
+  
+        // 효과
+        triggerConfetti();
+        renderLogModalOptions();
         saveData();
         renderTable();
+        console.log(`✅ ${nickname} → ${blindName}에게 ${value}점 반영됨`);
+      } else {
+        console.log(`⛔ 중복이거나 유효하지 않음: ${nickname} → ${blindName}`);
       }
+    }
+  });
 
-      if (type === "assign") {
-        const nickname = event.data.nickname;
-        const targetNum = parseInt(event.data.참가자);
-        const idx = targetNum - 1;
-        const value = pendingContributions[nickname];
-
-        if (value && participants[idx]) {
-          participants[idx].score += value;
-          participants[idx].conTotal = (participants[idx].conTotal || 0) + value;
-          delete pendingContributions[nickname];
-          launchConfetti();  // 🎉 수동 할당으로 점수 들어갈 때도 폭죽
-          saveData();
-          renderTable();
-        }
-      }
-    });
-
-    function launchConfetti() {
-      if (typeof confetti === "function") {
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 },
-          zIndex: 9999,
+    function triggerConfetti() {
+      if (window.confetti) {
+        window.confetti({
+          particleCount: 50,
+          spread: 90,
+          origin: { y: 0.6 }
         });
       }
     }
-
-
 
     function openModal() {
       document.getElementById('modal').style.display = 'block';
@@ -563,4 +588,5 @@
   </script>
 </body>
 </html>
+
 
