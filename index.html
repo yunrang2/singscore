@@ -574,38 +574,38 @@
       }
     }
     function removeDuplicateScores() {
-      if (!window.scoreLogs || !Array.isArray(scoreLogs)) return;
+      console.log("🧹 중복 점수 제거 시작");
     
-      const logMap = {};
-      const duplicateScoreMap = {};
+      const seen = new Set();
+      const newLogs = [];
     
-      // 1. 중복 로그 탐지
-      for (const log of scoreLogs) {
-        const key = `${log.nickname}#${log.참가자}#${log.amount}`;
-        if (logMap[key]) {
-          duplicateScoreMap[log.참가자] = (duplicateScoreMap[log.참가자] || 0) + log.amount;
+      for (const log of conLogHistory) {
+        const key = `${log.nickname}|${log.참가자}|${log.amount}`;
+        if (seen.has(key)) {
+          console.log("⚠️ 중복 감지:", key);
+          // 차감
+          const idx = participants.findIndex(p => p.blindName === log.참가자);
+          if (idx !== -1) {
+            participants[idx].score -= log.amount;
+            participants[idx].conTotal -= log.amount;
+          }
         } else {
-          logMap[key] = true;
+          seen.add(key);
+          newLogs.push(log);
         }
       }
     
-      // 2. 참가자 점수에서 중복 점수 차감
-      participants.forEach((p, i) => {
-        const blindName = `참가자${i + 1}`;
-        const deduct = duplicateScoreMap[blindName];
-        if (deduct) {
-          p.score = Math.max((p.score || 0) - deduct, 0);
-          p.conTotal = Math.max((p.conTotal || 0) - deduct, 0);
-          p.scoreTotal = Math.max((p.scoreTotal || 0) - deduct, 0);
-        }
-      });
-    
+      conLogHistory = newLogs;
       saveData();
       renderTable();
+    
+      console.log("✅ 중복 제거 완료");
     }
+
   </script>
 </body>
 </html>
+
 
 
 
