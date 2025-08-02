@@ -259,19 +259,6 @@
   let contributionLogs = []; // 로그 배열
   let assignedHistory = new Set(); // 중복 방지용
 
-
-let participants = [];
-let originalOrder = [];
-let judgeCount = 3;
-let showSingers = false;
-let currentScoreIndex = null;
-let activeIndex = null;
-let lastMessageHash = null;
-let pendingContributions = {};
-let isSortedByScore = false;
-let contributionLogs = []; // 로그 배열
-let assignedHistory = new Set(); // 중복 방지용
-
   window.addEventListener("message", (event) => {
     const { type, con, amount, 참가자, raw } = event.data;
   
@@ -618,6 +605,7 @@ let assignedHistory = new Set(); // 중복 방지용
   </script>
 </body>
 </html>
+
 
 
 
