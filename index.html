@@ -515,7 +515,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       loadSavedData();
-      removeDuplicateScores();  // ← 여기에 추가
+      purgeDuplicateConScores();  // ← 여기에 추가
     });
 
     function logConAssignment(nickname, blindName, value) {
@@ -573,35 +573,6 @@
           .join("\n");
       }
     }
-    function removeDuplicateScores() {
-      console.log("🧹 중복 점수 제거 시작");
-    
-      const seen = new Set();
-      const newLogs = [];
-    
-      for (const log of conLogHistory) {
-        const key = `${log.nickname}|${log.참가자}|${log.amount}`;
-        if (seen.has(key)) {
-          console.log("⚠️ 중복 감지:", key);
-          // 차감
-          const idx = participants.findIndex(p => p.blindName === log.참가자);
-          if (idx !== -1) {
-            participants[idx].score -= log.amount;
-            participants[idx].conTotal -= log.amount;
-          }
-        } else {
-          seen.add(key);
-          newLogs.push(log);
-        }
-      }
-    
-      conLogHistory = newLogs;
-      saveData();
-      renderTable();
-    
-      console.log("✅ 중복 제거 완료");
-    }
-
     function purgeDuplicateConScores() {
       if (!Array.isArray(conLogHistory)) {
         console.warn("⚠️ conLogHistory 없음");
@@ -616,22 +587,19 @@
       const validLogs = [];
     
       for (const log of conLogHistory) {
-        const key = `${log.nickname}|${log.참가자}|${log.amount}`;
-        const idx = participants.findIndex(p => p.blindName === log.참가자);
+        const key = `${log.nickname}|${log.participant}|${log.value}`;
+        const idx = participants.findIndex(p => p.blindName === log.participant);
     
         if (idx === -1) continue;
     
         if (!seenKeys.has(key)) {
-          // 처음 등장한 조합이면 통과
           seenKeys.add(key);
-          validLogs.push(log);
+          validLogs.push(log); // 첫 기록 유지
         } else {
-          // 이미 처리된 조합이면 중복 → 차감
-          participants[idx].score -= log.amount;
-          participants[idx].conTotal -= log.amount;
+          participants[idx].score -= log.value;
+          participants[idx].conTotal -= log.value;
           if (participants[idx].score < 0) participants[idx].score = 0;
           if (participants[idx].conTotal < 0) participants[idx].conTotal = 0;
-    
           console.log(`❌ 중복 점수 차감됨: ${key}`);
         }
       }
@@ -641,12 +609,14 @@
       renderTable();
       console.log("✅ 중복 콘 점수 정리 완료");
     }
+    
 
   purgeDuplicateConScores();
 
   </script>
 </body>
 </html>
+
 
 
 
