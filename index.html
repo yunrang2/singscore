@@ -253,7 +253,7 @@
         </div>
     </div>
 
-     <script>
+    <script>
         let participants = [];
         let originalOrder = [];
         let judgeCount = 3;
@@ -268,7 +268,7 @@
         let lastCoinSender = null;
     
         function showVersion() {
-            const version = 'v.2025.08.02.12';
+            const version = 'v.2025.08.02.15';
             const versionDiv = document.createElement('div');
             versionDiv.textContent = version;
             versionDiv.style.position = 'fixed';
@@ -283,15 +283,15 @@
         }
     
         window.addEventListener("message", (event) => {
-            const { type, con, amount, nickname, raw } = event.data;
+            const { type, con, amount, nickname, 참가자, raw } = event.data;
             
-            // 메시지가 같은지 확인하는 로직을 더 강력하게 수정
             const msgHash = JSON.stringify(event.data);
             if (msgHash === lastMessageHash) return;
             lastMessageHash = msgHash;
             
             console.log("💌 메시지 수신 및 처리 시작:", event.data);
     
+            // 팝콘 메시지 처리 (점수 보류)
             if (type === "coin") {
                 const value = parseInt(amount ?? con);
                 if (!value || isNaN(value) || !nickname) {
@@ -299,7 +299,7 @@
                     return;
                 }
     
-                // 수정된 로직: 현재 노래 중인 참가자(체크된 참가자)가 있으면 즉시 점수 반영
+                // 체크된 참가자가 있으면 바로 점수 할당 (이전과 동일한 기능)
                 if (activeIndex !== null && participants[activeIndex]) {
                     const targetParticipant = participants[activeIndex];
                     const blindName = targetParticipant.blindName || `참가자${activeIndex + 1}`;
@@ -327,16 +327,17 @@
                     saveData();
                     renderTable();
                     console.log(`✅ ${nickname} → ${blindName}에게 ${value}점 자동 반영됨`);
-    
+                    
                 } else {
-                    // 노래 중인 참가자가 없으면 보류
+                    // 체크된 참가자가 없으면 점수를 보류 상태로 둡니다.
                     pendingContributions[nickname] = (pendingContributions[nickname] || 0) + value;
                     console.log(`💰 보류된 점수 저장: ${nickname} → ${value}점 (노래 중인 참가자가 없음)`);
                 }
             }
-    
+            
+            // `@참가자n` 명령어 처리 (보류된 점수 할당)
             if (type === "assign") {
-                const targetNum = parseInt(event.data.참가자);
+                const targetNum = parseInt(참가자);
                 const senderNickname = nickname;
                 
                 const value = pendingContributions[senderNickname];
@@ -755,6 +756,7 @@
     </script>
 </body>
 </html>
+
 
 
 
