@@ -268,9 +268,8 @@
         let assignedHistory = new Set();
         let lastCoinSender = null;
     
-        // === 버전 정보 표시 함수 추가 ===
         function showVersion() {
-            const version = 'v.2025.08.02.02';
+            const version = 'v.2025.08.02.03';
             const versionDiv = document.createElement('div');
             versionDiv.textContent = version;
             versionDiv.style.position = 'fixed';
@@ -296,7 +295,8 @@
                 const text = raw || "";
                 if (!value || isNaN(value)) return;
     
-                const nickMatch = text.match(/(.+?)\(.+?\)님이/);
+                // 닉네임 추출 정규식 수정: 괄호가 포함된 닉네임도 인식
+                const nickMatch = text.match(/^\s*(.*?)\s*\(.+?\)\s*님이/);
                 const senderNickname = nickMatch ? nickMatch[1].trim() : null;
     
                 if (senderNickname) {
@@ -350,19 +350,16 @@
             }
         });
     
-        // === 로그를 기반으로 점수 재처리하는 함수 추가 ===
         window.reprocessConLogs = function() {
             if (!confirm("저장된 로그를 바탕으로 모든 콘 점수를 재반영하시겠습니까?\n기존 점수는 초기화됩니다.")) {
                 return;
             }
     
-            // 참가자들의 모든 콘 점수 초기화
             participants.forEach(p => {
                 p.score = 0;
                 p.conTotal = 0;
             });
     
-            // 로그 기록을 다시 순회하며 점수 반영
             conLogHistory.forEach(log => {
                 const participantIndex = participants.findIndex(p => p.blindName === log.participant);
                 if (participantIndex !== -1) {
@@ -371,9 +368,9 @@
                 }
             });
     
+            saveData(); // 데이터 저장
+            renderTable(); // 테이블 갱신
             console.log("✅ 로그를 바탕으로 모든 점수 재반영 완료!");
-            saveData();
-            renderTable();
         };
     
         function triggerConfetti() {
@@ -540,9 +537,9 @@
                     const val = parseInt(document.getElementById(`scoreInput${i}`).value) || 0;
                     participants[currentScoreIndex][`judge${i + 1}`] = val;
                 }
-                closeScoreModal();
-                renderTable();
                 saveData();
+                renderTable();
+                closeScoreModal();
             }
         }
     
@@ -719,9 +716,9 @@
             showVersion();
         });
     </script>
-
 </body>
 </html>
+
 
 
 
